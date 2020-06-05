@@ -2,7 +2,7 @@
 
 #include <petra_core/tools/IO.h>
 
-//Logger Logger::global_instance = Logger();
+Logger Logger::global_instance = Logger();
 
 void Logger::log(const std::string &message, unsigned int hierarchy, LogLevel level)
 {
@@ -23,7 +23,8 @@ void Logger::write_log(const LogEntry &entry)
     {
         std::string message = "[" + entry.level.to_string() + " | " + entry.time.to_string("%H:%M:%S") + "]: " + entry.message;
 
-        IO::write_file(file_path, message, true);
+        //im log.txt wird immer nur eine Zeile mit dem neuesten Eintrag überschrieben
+        //IO::write_file(file_path, message, true); //temporary disabled
 
         for (size_t i = 0; i < entry.hierarchy; ++i)
         {

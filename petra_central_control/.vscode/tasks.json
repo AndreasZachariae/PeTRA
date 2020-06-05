@@ -1,0 +1,60 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "type": "shell",
+            "label": "g++ build active file",
+            "command": "/usr/bin/g++",
+            "args": [
+                "-g",
+                "${fileDirname}/*.cpp",
+                "${workspaceFolder}/../petra_core/src/*.cpp",
+                "-I${workspaceFolder}/include",
+                "-I${workspaceFolder}/../petra_core/include",
+                "-I${workspaceFolder}/../../install/petra_core/include",
+                "-I/opt/ros/dashing/include",
+                "-o",
+                "${fileDirname}/${fileBasenameNoExtension}",
+                "-pthread"
+            ],
+            "options": {
+                "cwd": "/usr/bin"
+            },
+            "problemMatcher": [
+                "$gcc"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        },
+        {
+            "type": "shell",
+            "label": "g++ build test file",
+            "command": "/usr/bin/g++",
+            "args": [
+                "-g",
+                "${workspaceFolder}/src/test.cpp",
+                "${workspaceFolder}/../petra_core/src/events/*.cpp",
+                "${workspaceFolder}/../petra_core/src/tools/*.cpp",
+                "-I${workspaceFolder}/include",
+                "-I${workspaceFolder}/../petra_core/include",
+                "-I${workspaceFolder}/../../install/petra_core/include",
+                "-I/opt/ros/dashing/include",
+                "-o",
+                "${workspaceFolder}/src/test",
+                "-pthread"
+            ],
+            "options": {
+                "cwd": "/usr/bin"
+            },
+            "problemMatcher": [
+                "$gcc"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        }
+    ]
+}

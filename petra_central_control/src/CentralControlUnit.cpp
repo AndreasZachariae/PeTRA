@@ -1,20 +1,23 @@
-/*****************************************************
- *                    ROS2 Node
- *****************************************************/
 #include <petra_central_control/CentralControlUnit.h>
 
-#include <chrono>
-#include <cstdlib>
-#include <memory>
+#include <petra_central_control/SystemMonitor.h>
+#include <petra_central_control/SkillSelection.h>
 
-using namespace std::chrono_literals;
-using namespace std;
+CentralControlUnit::CentralControlUnit(int argc, char **argv) : Component("CCU"), state_(CCUState::uninitialized)
+{
+    node_handle = rclcpp::Node::make_shared("CentralControlUnit");
+}
+
+CentralControlUnit::~CentralControlUnit()
+{
+    log("ROS shutdown");
+}
 
 void CentralControlUnit::init()
 {
+    add_skill(std::make_shared<SystemMonitor>(), true);
 
-    cout << "CCU initialised" << endl;
-    state_ = CCUState::initialized;
+    set_state_(CCUState::initialized);
 }
 
 void CentralControlUnit::run()
@@ -23,44 +26,68 @@ void CentralControlUnit::run()
     {
         init();
     }
-    cout << "CCU active" << endl;
-    state_ = CCUState::active;
-    //log("Started");
 
-    ActionSelection as(node_handle);
-    add_action(&as);
+    set_state_(CCUState::active);
 
-    while (!action_queue_.empty())
+    while ((state_ == CCUState::active) && rclcpp::ok())
     {
-        if (action_queue_.front()->get_action_state() == ActionState::uninitialized | action_queue_.front()->get_action_state() == ActionState::initialized)
+        if (skill_queue_.empty())
         {
-            action_queue_.front()->start();
+            add_skill(std::make_shared<SkillSelection>(this));
         }
-        else if (action_queue_.front()->get_action_state() == ActionState::paused)
+
+        if (!spin_skill_(skill_queue_.front()))
         {
-            add_action(action_queue_.front());
-            action_queue_.pop();
+            skill_queue_.pop();
         }
-        else if (action_queue_.front()->get_action_state() == ActionState::finished)
+
+        for (uint index = 0; index < background_skills_.size(); ++index)
         {
-            action_queue_.pop();
+            if (!spin_skill_(background_skills_[index]))
+            {
+                background_skills_.erase(background_skills_.begin() + (index--));
+            }
         }
-        //only continue if ActionState==active
+        
+        rclcpp::spin_some(node_handle);
     }
 
-    cout << "CCU finished" << endl;
-    state_ = CCUState::finished;
+    set_state_(CCUState::finished);
 }
 
-void CentralControlUnit::add_action(Action *action)
+bool CentralControlUnit::spin_skill_(std::shared_ptr<Skill> skill_ptr)
 {
-    action_queue_.push(action);
-    cout << "Action added to CCU queue" << endl;
+    if (skill_ptr->get_state() == SkillState::finished)
+    {
+        return false;
+    }
+
+    if ((skill_ptr->get_state() == SkillState::uninitialized) | (skill_ptr->get_state() == SkillState::initialized))
+    {
+        skill_ptr->start();
+    }
+
+    skill_ptr->spin();
+
+    return true;
 }
 
-int main(int argc, char **argv)
+void CentralControlUnit::add_skill(std::shared_ptr<Skill> skill_ptr, bool background)
 {
-    CentralControlUnit ccu(argc, argv);
-    ccu.run();
-    return 0;
+    if (background)
+    {
+        background_skills_.push_back(skill_ptr);
+        skill_ptr.get()->start();
+    }
+    else
+    {
+        skill_queue_.push(skill_ptr);
+    }
+}
+
+void CentralControlUnit::set_state_(CCUState state)
+{
+    state_ = state;
+
+    log(state_.to_string());
 }

@@ -10,8 +10,7 @@ class Logger
 {
 public:
   const std::string HIERARCHY_PREFIX = "  ";
-  static Logger& global_instance(){static Logger global_logger; return global_logger;};
-  //static Logger global_instance;
+  static Logger global_instance;
 
   Logger() : Logger(LogLevel::Info) {}
   Logger(LogLevel level) : level(level) {}

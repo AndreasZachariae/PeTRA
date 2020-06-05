@@ -18,8 +18,8 @@ endif()
 # find dependencies
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
+find_package(rclcpp_action REQUIRED)
 find_package(petra_core REQUIRED)
-find_package(petra_interfaces REQUIRED)
 
 include_directories(
   include 
@@ -28,28 +28,27 @@ include_directories(
  
 set(dependencies 
   "rclcpp" 
-  "petra_core" 
-  "petra_interfaces"
+  "rclcpp_action"
+  "petra_core"
 )
 
 set(CentralControlUnit_SRC
+  src/node.cpp
   src/CentralControlUnit.cpp
-  src/ActionSelection.cpp
-  src/Action.cpp
-)
-
-#notwendig?
-set(CentralControlUnit_HDR
-  include/petra_central_control/ActionSelection.h
-  include/petra_central_control/Action.h
+  src/Skill.cpp
+  src/SkillSelection.cpp
+  src/SystemMonitor.cpp
+  src/MoveRobot.cpp
+  src/Dialogue.cpp
 )
 
 #make executables
-add_executable(CentralControlUnit ${CentralControlUnit_SRC} ${CentralControlUnit_HDR})
-ament_target_dependencies(CentralControlUnit ${dependencies})
+add_executable(CCU ${CentralControlUnit_SRC})
+target_link_libraries(CCU petra_core::petra_core_LIB)
+ament_target_dependencies(CCU ${dependencies})
 
 install(TARGETS
-  CentralControlUnit
+  CCU
   DESTINATION lib/${PROJECT_NAME}
 )
 

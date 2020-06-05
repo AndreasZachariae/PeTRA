@@ -19,9 +19,9 @@ public:
     operator Value() const { return value_; }
     explicit operator bool() = delete;
 
-    std::string ccu_state_to_string(CCUState state)
+    std::string to_string()
     {
-        switch (state)
+        switch (value_)
         {
         case CCUState::uninitialized:
             return "Uninitialized";

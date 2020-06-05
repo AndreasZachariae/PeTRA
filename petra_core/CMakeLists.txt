@@ -17,11 +17,69 @@ endif()
 
 # find dependencies
 find_package(ament_cmake REQUIRED)
+find_package(rosidl_default_generators REQUIRED)
+find_package(builtin_interfaces REQUIRED)
+find_package(std_msgs REQUIRED)
+find_package(sensor_msgs REQUIRED)
+find_package(geometry_msgs REQUIRED)
+find_package(nav_msgs REQUIRED)
+
+set(dependencies
+  builtin_interfaces
+  std_msgs
+  sensor_msgs
+  geometry_msgs
+  nav_msgs
+)
+
+rosidl_generate_interfaces(${PROJECT_NAME}
+  "msg/DateTime.msg"
+  "msg/DialogueDataType.msg"
+  "srv/GetInput.srv"
+  "srv/Dialogue.srv"
+  "action/Charging.action"
+  "action/NavigateToPose.action"
+  DEPENDENCIES ${dependencies}
+ )
+
+set(petra_core_LIB_SRC
+    src/events/Event.cpp
+    src/tools/Chrono.cpp
+    src/tools/ChronoTime.cpp
+    src/tools/IO.cpp
+    src/tools/Logger.cpp
+    src/tools/LogLevel.cpp
+    src/tools/ThreadExecuter.cpp
+)
+add_library(petra_core_LIB ${petra_core_LIB_SRC})
+
+target_include_directories(petra_core_LIB PUBLIC
+  "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
+  "$<INSTALL_INTERFACE:include>"
+)
 
 install(DIRECTORY include/${PROJECT_NAME}/
   DESTINATION include/${PROJECT_NAME}
   FILES_MATCHING PATTERN "*.h"
-  PATTERN ".git" EXCLUDE)
+  PATTERN ".git" EXCLUDE
+)
+
+# Install launch files.
+install(DIRECTORY
+  launch
+  DESTINATION share/${PROJECT_NAME}/
+)
+
+# Install library
+install(TARGETS petra_core_LIB
+  EXPORT export_petra_core_LIB
+  ARCHIVE DESTINATION lib
+  LIBRARY DESTINATION lib
+  RUNTIME DESTINATION bin
+  INCLUDES DESTINATION include
+)
 
 ament_export_include_directories(include)
+ament_export_interfaces(export_petra_core_LIB HAS_LIBRARY_TARGET)
+ament_export_dependencies(rosidl_default_runtime ${dependencies})
 ament_package()

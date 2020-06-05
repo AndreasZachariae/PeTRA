@@ -2,35 +2,33 @@
 
 #include <queue>
 
-#include <petra_central_control/default.h>
-#include <petra_central_control/CCUState.h>
-#include <petra_central_control/Action.h>
-#include <petra_central_control/ActionSelection.h>
-
 #include <rclcpp/rclcpp.hpp>
 
-class CentralControlUnit : Component//, public rclcpp::Node
+#include <petra_central_control/default.h>
+#include <petra_central_control/CCUState.h>
+#include <petra_central_control/Skill.h>
+
+class CentralControlUnit : Component
 {
 public:
-    CentralControlUnit(int argc, char **argv) : state_(CCUState::uninitialized)//, Node("CentralControlUnit")
-    {
-        rclcpp::init(argc, argv);
-        node_handle = rclcpp::Node::make_shared("CentralControlUnit");
-    }
-    ~CentralControlUnit()
-    {
-        rclcpp::shutdown();
-        std::cout << "ROS shutdown" << std::endl;
-    }
+    CentralControlUnit(int argc, char **argv);
+    ~CentralControlUnit();
+
     std::shared_ptr<rclcpp::Node> node_handle;
-    void run();
+
     void init();
-    void add_action(Action *);
+    void run();
+    
+    void add_skill(std::shared_ptr<Skill> skill_ptr, bool background = false);
 
 private:
     CCUState state_;
 
-    std::queue<Action *> action_queue_;
+    std::queue<std::shared_ptr<Skill>> skill_queue_;
+    std::vector<std::shared_ptr<Skill>> background_skills_;
 
-    std::vector<Action *> background_actions_;
+    bool spin_skill_(std::shared_ptr<Skill> skill_ptr);
+    
+    void set_state_(CCUState state);
+    friend class SkillSelection;
 };
