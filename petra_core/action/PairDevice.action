@@ -1,0 +1,18 @@
+uint8 WHEELCHAIR = 0
+uint8 ROLLATOR = 1
+uint8 HOSPITALBED = 2
+uint8 CHARGINGSTATION = 3
+
+uint8 UNPAIR = 0
+uint8 PAIR = 1
+
+# action goal
+uint8 device_type
+uint8 pairing_mode
+---
+# action result
+bool success
+---
+# action feedback
+# progress from 0 to 1
+float32 progress

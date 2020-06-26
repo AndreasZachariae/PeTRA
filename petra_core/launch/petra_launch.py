@@ -20,11 +20,11 @@ def generate_launch_description():
         #    node_name='Keyboard',
         #    output='screen'
         #),
-        Node(
-            package='petra_drivers',
-            node_executable='RobotDummy',
-            node_name='RobotDummy'
-        ),
+        #Node(
+        #    package='petra_drivers',
+        #    node_executable='RobotDummy',
+        #    node_name='RobotDummy'
+        #),
         Node(
             package='petra_services',
             node_executable='Communication',
@@ -34,6 +34,16 @@ def generate_launch_description():
             package='petra_services',
             node_executable='Navigation2Dummy',
             node_name='Navigation2Dummy'
+        ),
+        Node(
+            package='petra_drivers',
+            node_executable='PairingModuleDummy',
+            node_name='PairingModuleDummy'
+        ),
+        Node(
+            package='petra_drivers',
+            node_executable='ManipulatorDummy',
+            node_name='ManipulatorDummy'
         ),
         Node(
             package='petra_central_control',

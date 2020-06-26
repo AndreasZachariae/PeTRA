@@ -20,28 +20,28 @@ Navigation2Dummy::Navigation2Dummy(const rclcpp::NodeOptions &options) : Node("N
 
 rclcpp_action::GoalResponse Navigation2Dummy::handle_goal_(const rclcpp_action::GoalUUID &uuid, std::shared_ptr<const NavigateToPose::Goal> goal)
 {
-    RCLCPP_INFO(this->get_logger(), "Received goal request position (x=%i, y=%i)", (int)goal->pose.pose.position.x, (int)goal->pose.pose.position.y);
+    RCLCPP_INFO(get_logger(), "Received goal request position (x=%i, y=%i)", (int)goal->pose.pose.position.x, (int)goal->pose.pose.position.y);
     (void)uuid;
     return rclcpp_action::GoalResponse::ACCEPT_AND_EXECUTE;
 }
 
 rclcpp_action::CancelResponse Navigation2Dummy::handle_cancel_(const std::shared_ptr<GoalHandleNavigateToPose> goal_handle)
 {
-    RCLCPP_INFO(this->get_logger(), "Received request to cancel goal");
+    RCLCPP_INFO(get_logger(), "Received request to cancel goal");
     (void)goal_handle;
     return rclcpp_action::CancelResponse::ACCEPT;
 }
 
 void Navigation2Dummy::execute_(const std::shared_ptr<GoalHandleNavigateToPose> goal_handle)
 {
-    RCLCPP_INFO(this->get_logger(), "Executing goal");
+    RCLCPP_INFO(get_logger(), "Executing goal");
 
     auto feedback = std::make_shared<NavigateToPose::Feedback>();
     auto result = std::make_shared<NavigateToPose::Result>();
 
     const auto goal = goal_handle->get_goal();
 
-    RCLCPP_INFO(this->get_logger(), "Publishing: move_base_simple/goal");
+    RCLCPP_INFO(get_logger(), "Publishing: move_base_simple/goal");
     goal_publisher_->publish(goal->pose);
 
     //current position from topic odometry_callback, default (x=0,y=0)
@@ -57,7 +57,7 @@ void Navigation2Dummy::execute_(const std::shared_ptr<GoalHandleNavigateToPose> 
         if (goal_handle->is_canceling())
         {
             goal_handle->canceled(result);
-            RCLCPP_INFO(this->get_logger(), "Goal Canceled");
+            RCLCPP_INFO(get_logger(), "Goal Canceled");
             return;
         }
 
@@ -71,7 +71,7 @@ void Navigation2Dummy::execute_(const std::shared_ptr<GoalHandleNavigateToPose> 
             feedback->current_pose.pose.position.y = current_position_.y;
 
             goal_handle->publish_feedback(feedback);
-            RCLCPP_INFO(this->get_logger(), "Publish Feedback");
+            RCLCPP_INFO(get_logger(), "Publish Feedback");
 
             last_feedback_time = now().seconds();
         }
@@ -81,7 +81,7 @@ void Navigation2Dummy::execute_(const std::shared_ptr<GoalHandleNavigateToPose> 
     if (rclcpp::ok())
     {
         goal_handle->succeed(result);
-        RCLCPP_INFO(this->get_logger(), "Goal Succeeded");
+        RCLCPP_INFO(get_logger(), "Goal Succeeded");
     }
 }
 

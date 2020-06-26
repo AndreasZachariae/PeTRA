@@ -4,22 +4,23 @@
 #include <cmath>
 #include <ostream>
 
+// Methoden funktionieren nur für zweidimensionale Punkte
 struct Point{
 	public:
 		/* The x and y variable are made PUBLIC because they are only limited by
 		 * the float data type constraints.
 		 */
-		float x, y;
+		float x, y, z;
     
 		/* The constructor will accept float and int data types or none at all.
 		 * Two parameters sets to x,y respectively; one parameter sets both
 		 * x and y to the same value.  An empty constructor sets x,y = 0.0
 		 */
-		Point() : x(0.0), y(0.0) {};
-		Point(float x, float y) : x(x), y(y) {};
-		Point(float val) : x(val), y(val) {};
-		Point(int x, int y) : x(static_cast<float>(x)), y(static_cast<float>(y)) {};
-		Point(int val) : x(static_cast<float>(val)), y(static_cast<float>(val)) {};
+		Point() : x(0.0), y(0.0) ,z(0.0){};
+		Point(float x, float y, float z = 0.0) : x(x), y(y), z(z) {};
+		Point(float val) : x(val), y(val) ,z(val) {};
+		Point(int x, int y, int z = 0) : x(static_cast<float>(x)), y(static_cast<float>(y)), z(static_cast<float>(z)) {};
+		Point(int val) : x(static_cast<float>(val)), y(static_cast<float>(val)) , z(static_cast<float>(val)){};
 
 
 		/* Returns the slope of two points.
@@ -36,7 +37,7 @@ struct Point{
 		 * two points: square_root of [ (x2-x1)^2 + (y2-y1)^2 ]
 		 */
 		float distance(Point p) const {
-			float d = ((p.x-x) * (p.x-x)) + ((p.y-y) * (p.y-y));
+			float d = ((p.x-x) * (p.x-x)) + ((p.y-y) * (p.y-y)) + ((p.z-z) * (p.z-z));
 			return std::sqrt(d);
 		}
 

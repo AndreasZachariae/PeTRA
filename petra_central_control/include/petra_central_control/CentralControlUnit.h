@@ -11,7 +11,7 @@
 class CentralControlUnit : Component
 {
 public:
-    CentralControlUnit(int argc, char **argv);
+    CentralControlUnit();
     ~CentralControlUnit();
 
     std::shared_ptr<rclcpp::Node> node_handle;

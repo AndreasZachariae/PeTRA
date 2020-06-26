@@ -34,11 +34,13 @@ set(dependencies
 
 rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/DateTime.msg"
-  "msg/DialogueDataType.msg"
+  "msg/DialogDataType.msg"
   "srv/GetInput.srv"
-  "srv/Dialogue.srv"
-  "action/Charging.action"
+  "srv/UserDialog.srv"
+  "action/ChargeBattery.action"
   "action/NavigateToPose.action"
+  "action/PairDevice.action"
+  "action/MoveArm.action"
   DEPENDENCIES ${dependencies}
  )
 

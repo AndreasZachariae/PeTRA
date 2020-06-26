@@ -1,0 +1,10 @@
+#goal definition
+geometry_msgs/Pose pose
+float32 gripper_position
+---
+#result definition
+bool success
+---
+geometry_msgs/Pose current_pose
+builtin_interfaces/Duration movement_time
+float32 progress

@@ -1,13 +1,13 @@
-int8 NORMAL = 0
-int8 HIGH = 1
-int8 CRITICAL = 2
+uint8 NORMAL = 0
+uint8 HIGH = 1
+uint8 CRITICAL = 2
 
 string title
 #message to display on the screen
 string msg
 int8 importance
 # keys to display for each input
-DialogueDataType[] data_keys
+DialogDataType[] data_keys
 ---
 #stores the input values for each key
 string[] data_values

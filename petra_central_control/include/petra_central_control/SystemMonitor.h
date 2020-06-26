@@ -8,7 +8,7 @@ class SystemMonitor : public Skill
 private:
 
 public:
-    SystemMonitor(std::string name = "SystemMonitor") : Skill(name) {}
+    SystemMonitor(std::shared_ptr<rclcpp::Node> node_handle) : Skill(node_handle, "SystemMonitor", true) {}
 
     void check_system();
 protected:

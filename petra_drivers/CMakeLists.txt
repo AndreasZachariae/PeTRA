@@ -18,6 +18,7 @@ endif()
 # find dependencies
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
+find_package(rclcpp_action REQUIRED)
 find_package(petra_core REQUIRED)
 
 include_directories(
@@ -39,12 +40,20 @@ add_executable(Keyboard src/Keyboard.cpp)
 ament_target_dependencies(Keyboard ${dependencies})
 
 add_executable(RobotDummy src/RobotDummy.cpp)
-ament_target_dependencies(RobotDummy ${dependencies})
+ament_target_dependencies(RobotDummy ${dependencies} "rclcpp_action")
+
+add_executable(PairingModuleDummy src/PairingModuleDummy.cpp)
+ament_target_dependencies(PairingModuleDummy ${dependencies} "rclcpp_action")
+
+add_executable(ManipulatorDummy src/ManipulatorDummy.cpp)
+ament_target_dependencies(ManipulatorDummy ${dependencies} "rclcpp_action")
 
 install(TARGETS
   Screen
   Keyboard
   RobotDummy
+  PairingModuleDummy
+  ManipulatorDummy
   DESTINATION lib/${PROJECT_NAME}
 )
 

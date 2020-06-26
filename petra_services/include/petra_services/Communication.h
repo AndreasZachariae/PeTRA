@@ -3,6 +3,8 @@
  *****************************************************/
 #pragma once
 
+#include <chrono>
+
 #include <rclcpp/rclcpp.hpp>
 
 #include <std_msgs/msg/empty.hpp>
@@ -10,11 +12,9 @@
 
 #include <petra_core/default.h>
 #include <petra_core/srv/get_input.hpp>
-#include <petra_core/srv/dialogue.hpp>
+#include <petra_core/srv/user_dialog.hpp>
 
-#include <chrono>
-
-using Dialogue = petra_core::srv::Dialogue;
+using UserDialog = petra_core::srv::UserDialog;
 
 class Communication : public rclcpp::Node
 {
@@ -26,7 +26,7 @@ private:
 
     void input_string_callback_(const std_msgs::msg::String::SharedPtr msg);
     void stop_callback_(const std_msgs::msg::Empty::SharedPtr msg);
-    void dialogue_callback(const std::shared_ptr<Dialogue::Request> request, std::shared_ptr<Dialogue::Response> response);
+    void dialog_callback(const std::shared_ptr<UserDialog::Request> request, std::shared_ptr<UserDialog::Response> response);
 
     void publish_text_(std::string);
 
@@ -36,7 +36,7 @@ private:
     rclcpp::Subscription<std_msgs::msg::String>::SharedPtr input_string_subscription_;
     rclcpp::Subscription<std_msgs::msg::Empty>::SharedPtr stop_subscription_;
     rclcpp::Client<petra_core::srv::GetInput>::SharedPtr get_input_client_;
-    rclcpp::Service<Dialogue>::SharedPtr dialogue_service_;
+    rclcpp::Service<UserDialog>::SharedPtr dialog_service_;
 
     std::vector<std::string> input_buffer_;
 

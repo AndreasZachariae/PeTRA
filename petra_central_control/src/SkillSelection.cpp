@@ -1,21 +1,20 @@
 #include <petra_central_control/SkillSelection.h>
-#include <petra_central_control/MoveRobot.h>
+#include <petra_central_control/BaseMovement.h>
+#include <petra_central_control/ArmMovement.h>
+#include <petra_central_control/DevicePairing.h>
+#include <petra_central_control/BatteryCharging.h>
 
-SkillSelection::SkillSelection(CentralControlUnit* ccu) : Skill("SkillSelection"), ccu_ptr_(ccu)
+SkillSelection::SkillSelection(CentralControlUnit* ccu) : Skill(ccu->node_handle, "SkillSelection"), ccu_ptr_(ccu)
 {
     progress_.steps = 2;
-
-    stop_subscription_ = ccu_ptr_->node_handle->create_subscription<std_msgs::msg::Empty>("Stop", 10, [&](const std_msgs::msg::Empty::SharedPtr msg)
-    {
-        stop();
-    });
 }
 
 void SkillSelection::init_()
 {
-    default_options_.push_back("MoveRobot");
-    default_options_.push_back("skill2");
-    default_options_.push_back("skill3");
+    default_options_.push_back("BaseMovement");
+    default_options_.push_back("ArmMovement");
+    default_options_.push_back("DevicePairing");
+    default_options_.push_back("BatteryCharging");
     default_options_.push_back("Shutdown CCU");
 }
 
@@ -32,28 +31,24 @@ void SkillSelection::spin_()
     }
 }
 
-void SkillSelection::stop_()
-{
-    log("Stop recieved", LogLevel::Warn);
-}
-
 void SkillSelection::select_skill_()
 {   
-    std::string msg = "Write corresponding index in Keyboard node\n";
-    for (int i = 0; i < default_options_.size(); i++)
+    std::string msg = "";
+    for (size_t i = 0; i < default_options_.size(); i++)
     {
-        msg = msg + "[" + std::to_string(i+1) + "]" + default_options_.at(i) + " ";
+        msg = msg + "[" + std::to_string(i+1) + "] " + default_options_.at(i) + "\n";
     }
+    msg.pop_back();
     
-    selection_ = Dialogue(ccu_ptr_->node_handle, "Choose a skill", msg);
-    selection_.add_int_key("index", 1, default_options_.size(), 0);
+    selection_dialog_ = UserDialog(ccu_ptr_->node_handle, "Select a skill", msg);
+    selection_dialog_.add_int_key("index", 1, default_options_.size(), 0);
 
-    if (selection_.send_dialogue([this]() 
+    if (selection_dialog_.send_dialog([this]() 
         {
             //data_value ist leer wenn Communication durch /stop resetted wurde
-            if (!selection_.get_response()->data_values.empty())
+            if (!selection_dialog_.get_response()->data_values.empty())
             {
-                int index = std::stoi(selection_.get_response()->data_values.at(0));
+                int index = std::stoi(selection_dialog_.get_response()->data_values.at(0));
 
                 std::string skill_str = default_options_.at(index - 1);
                 
@@ -71,9 +66,21 @@ void SkillSelection::select_skill_()
 
 void SkillSelection::queue_chosen_skill_(std::string skill_str)
 {
-    if (skill_str == "MoveRobot")
+    if (skill_str == "BaseMovement")
     {
-        ccu_ptr_->add_skill(std::make_shared<MoveRobot>(ccu_ptr_->node_handle));
+        ccu_ptr_->add_skill(std::make_shared<BaseMovement>(ccu_ptr_->node_handle));
+    }
+    else if (skill_str == "ArmMovement")
+    {
+        ccu_ptr_->add_skill(std::make_shared<ArmMovement>(ccu_ptr_->node_handle));
+    }
+    else if (skill_str == "DevicePairing")
+    {
+        ccu_ptr_->add_skill(std::make_shared<DevicePairing>(ccu_ptr_->node_handle));
+    }
+    else if (skill_str == "BatteryCharging")
+    {
+        ccu_ptr_->add_skill(std::make_shared<BatteryCharging>(ccu_ptr_->node_handle));
     }
     else if (skill_str == "Shutdown CCU")
     {

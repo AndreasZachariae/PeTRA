@@ -16,8 +16,8 @@ Communication::Communication() : Node("Communication")
     stop_subscription_ = create_subscription<std_msgs::msg::Empty>("Stop", 10,
                             std::bind(&Communication::stop_callback_, this, std::placeholders::_1), input_opt);
 
-    dialogue_service_ = create_service<Dialogue>("Dialogue", 
-                        std::bind(&Communication::dialogue_callback, this, std::placeholders::_1, std::placeholders::_2));
+    dialog_service_ = create_service<UserDialog>("UserDialog", 
+                        std::bind(&Communication::dialog_callback, this, std::placeholders::_1, std::placeholders::_2));
 }
 
 void Communication::publish_text_(std::string text)
@@ -39,31 +39,32 @@ void Communication::stop_callback_(const std_msgs::msg::Empty::SharedPtr msg)
 {
     stop_flipflop_ = !stop_flipflop_;
     RCLCPP_WARN(get_logger(), "Stop recieved, resetting service...");
+    (void)msg;
 }
 
-void Communication::dialogue_callback(const std::shared_ptr<Dialogue::Request> request, std::shared_ptr<Dialogue::Response> response)
+void Communication::dialog_callback(const std::shared_ptr<UserDialog::Request> request, std::shared_ptr<UserDialog::Response> response)
 {
     bool stop = !stop_flipflop_;
 
     RCLCPP_INFO(get_logger(), "Incoming request. Waiting for input data...");
-    std::string dialogue_msg;
+    std::string dialog_msg;
 
     switch (request->importance)
     {
-    case Dialogue::Request::NORMAL:
-        dialogue_msg = "";
+    case UserDialog::Request::NORMAL:
+        dialog_msg = "";
         break;
-    case Dialogue::Request::HIGH:
-        dialogue_msg = "[WARNING] ";
+    case UserDialog::Request::HIGH:
+        dialog_msg = "[WARNING] ";
         break;
-    case Dialogue::Request::CRITICAL:
-        dialogue_msg = "[CRITICAL] ";
+    case UserDialog::Request::CRITICAL:
+        dialog_msg = "[CRITICAL] ";
         break;
     default:
         break;
     }
-    dialogue_msg += ">> " + request->title + " <<\n" + request->msg;
-    publish_text_(dialogue_msg);
+    dialog_msg += ">> " + request->title + " <<\n" + request->msg;
+    publish_text_(dialog_msg);
 
     for (unsigned int i = 0; (i < request->data_keys.size()) && rclcpp::ok() && (stop_flipflop_ != stop); i++)
     {
@@ -75,16 +76,16 @@ void Communication::dialogue_callback(const std::shared_ptr<Dialogue::Request> r
 
         switch (request->data_keys.at(i).type)
         {
-        case petra_core::msg::DialogueDataType::INT:
+        case petra_core::msg::DialogDataType::INT:
             type_info += "int, " + min + " - " + max + ", default = " + default_value + "]";
             break;
-        case petra_core::msg::DialogueDataType::BOOL:
+        case petra_core::msg::DialogDataType::BOOL:
             type_info += "bool, " + min + "/" + max + " or y/n , default = " + default_value + "]";
             break;
-        case petra_core::msg::DialogueDataType::FLOAT:
+        case petra_core::msg::DialogDataType::FLOAT:
             type_info += "float, " + remove_zeros_(min) + " - " + remove_zeros_(max) + ", default = " + remove_zeros_(default_value) + "]";
             break;
-        case petra_core::msg::DialogueDataType::STRING:
+        case petra_core::msg::DialogDataType::STRING:
             type_info += "string, " + min + " - " + max + " long, default = " + default_value + "]";
             break;
         default:
@@ -108,7 +109,7 @@ void Communication::dialogue_callback(const std::shared_ptr<Dialogue::Request> r
 
             switch (request->data_keys.at(i).type)
             {
-            case petra_core::msg::DialogueDataType::INT:
+            case petra_core::msg::DialogDataType::INT:
                 int int_input;
                 try
                 {
@@ -130,16 +131,22 @@ void Communication::dialogue_callback(const std::shared_ptr<Dialogue::Request> r
                     continue;
                 }
                 break;
-            case petra_core::msg::DialogueDataType::BOOL:
-                if ((input_buffer_.back() == "0") | (input_buffer_.back() == "1") | (input_buffer_.back() == "y") | (input_buffer_.back() == "n"))
+            case petra_core::msg::DialogDataType::BOOL:
+                if ((input_buffer_.back() == "1") | (input_buffer_.back() == "y"))
                 {
+                    input_buffer_.back() = "true";
+                }
+                else if ((input_buffer_.back() == "0") | (input_buffer_.back() == "n"))
+                {
+                    input_buffer_.back() = "false";
                 }
                 else
                 {
+                    publish_text_("Invalid Input! Try again");
                     continue;
                 }
                 break;
-            case petra_core::msg::DialogueDataType::FLOAT:
+            case petra_core::msg::DialogDataType::FLOAT:
                 float float_input;
                 try
                 {
@@ -161,8 +168,8 @@ void Communication::dialogue_callback(const std::shared_ptr<Dialogue::Request> r
                     continue;
                 }
                 break;
-            case petra_core::msg::DialogueDataType::STRING:
-                if ((input_buffer_.at(i).size() < std::stoi(min)) | (input_buffer_.at(i).size() > std::stoi(max)))
+            case petra_core::msg::DialogDataType::STRING:
+                if ((input_buffer_.at(i).size() < (std::size_t)std::stoi(min)) | (input_buffer_.at(i).size() > (std::size_t)std::stoi(max)))
                 {
                     publish_text_("Number of characters not in range! Try again");
                     continue;

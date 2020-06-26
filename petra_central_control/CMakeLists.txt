@@ -38,8 +38,11 @@ set(CentralControlUnit_SRC
   src/Skill.cpp
   src/SkillSelection.cpp
   src/SystemMonitor.cpp
-  src/MoveRobot.cpp
-  src/Dialogue.cpp
+  src/BaseMovement.cpp
+  src/UserDialog.cpp
+  src/DevicePairing.cpp
+  src/ArmMovement.cpp
+  src/BatteryCharging.cpp
 )
 
 #make executables

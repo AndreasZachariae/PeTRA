@@ -3,7 +3,7 @@
 #include <petra_central_control/SystemMonitor.h>
 #include <petra_central_control/SkillSelection.h>
 
-CentralControlUnit::CentralControlUnit(int argc, char **argv) : Component("CCU"), state_(CCUState::uninitialized)
+CentralControlUnit::CentralControlUnit() : Component("CCU"), state_(CCUState::uninitialized)
 {
     node_handle = rclcpp::Node::make_shared("CentralControlUnit");
 }
@@ -15,7 +15,7 @@ CentralControlUnit::~CentralControlUnit()
 
 void CentralControlUnit::init()
 {
-    add_skill(std::make_shared<SystemMonitor>(), true);
+    add_skill(std::make_shared<SystemMonitor>(node_handle), true);
 
     set_state_(CCUState::initialized);
 }

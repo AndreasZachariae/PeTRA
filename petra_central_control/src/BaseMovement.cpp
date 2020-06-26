@@ -1,17 +1,10 @@
-#include <petra_central_control/MoveRobot.h>
+#include <petra_central_control/BaseMovement.h>
 
-#include <petra_central_control/CentralControlUnit.h>
-
-MoveRobot::MoveRobot(std::shared_ptr<rclcpp::Node> node_handle) : Skill("MoveRobot"), node_handle_(node_handle)
+BaseMovement::BaseMovement(std::shared_ptr<rclcpp::Node> node_handle) : Skill(node_handle, "BaseMovement"), node_handle_(node_handle)
 {
     progress_.steps = 5;
-
-    stop_subscription_ = node_handle_->create_subscription<std_msgs::msg::Empty>("Stop", 10, [&](const std_msgs::msg::Empty::SharedPtr msg)
-    {
-        stop();
-    });
     
-    client_ptr_ = rclcpp_action::create_client<NavigateToPose>(
+    navigate_to_base_client_ = rclcpp_action::create_client<NavigateToPose>(
         node_handle_->get_node_base_interface(),
         node_handle_->get_node_graph_interface(),
         node_handle_->get_node_logging_interface(),
@@ -19,12 +12,12 @@ MoveRobot::MoveRobot(std::shared_ptr<rclcpp::Node> node_handle) : Skill("MoveRob
         "NavigateToPose");
 }
 
-void MoveRobot::spin_()
+void BaseMovement::spin_()
 {
     switch (progress_.current_step)
     {
         case 0:
-            request_data_();
+            request_location_();
             break;
         case 2:
             send_goal_();
@@ -35,13 +28,11 @@ void MoveRobot::spin_()
     }
 }
 
-void MoveRobot::stop_()
+void BaseMovement::stop_()
 {
-    log("Stop recieved", LogLevel::Warn);
-
     try
     {
-        auto cancel_result_future = client_ptr_->async_cancel_goal(goal_handle_future_.get());
+        auto cancel_result_future = navigate_to_base_client_->async_cancel_goal(goal_handle_future_.get());
     }
     catch (const std::future_error &e)
     {
@@ -49,32 +40,32 @@ void MoveRobot::stop_()
     }
 }
 
-void MoveRobot::request_data_()
+void BaseMovement::request_location_()
 {
-    goal_point_dialogue_ = Dialogue(node_handle_, "Goal position", "Input goal coordinates x and y");
-    goal_point_dialogue_.add_float_key("X", -10, 10);
-    goal_point_dialogue_.add_float_key("Y", -10, 10);
+    goal_point_dialog_ = UserDialog(node_handle_, "Goal position", "Input goal coordinates x and y");
+    goal_point_dialog_.add_float_key("X", -10, 10);
+    goal_point_dialog_.add_float_key("Y", -10, 10);
 
-    if (goal_point_dialogue_.send_dialogue([this]() 
+    if (goal_point_dialog_.send_dialog([this]() 
         {
             //data_values ist nicht voll belegt wenn Communication durch /stop resetted wurde
-            if (goal_point_dialogue_.get_response()->data_values.size() == 2)
+            if (goal_point_dialog_.get_response()->data_values.size() == 2)
             {
                 goal_point_ = new Point(
-                    stof(goal_point_dialogue_.get_response()->data_values.at(0)),
-                    stof(goal_point_dialogue_.get_response()->data_values.at(1)));
+                    stof(goal_point_dialog_.get_response()->data_values.at(0)),
+                    stof(goal_point_dialog_.get_response()->data_values.at(1)));
 
-                next_step_("Received data...");
+                next_step_("Received location...");
             }
         }))
     {
-        next_step_("Requesting data...");
+        next_step_("Requesting location...");
     }
 }
 
-void MoveRobot::send_goal_()
+void BaseMovement::send_goal_()
 {
-    if (client_ptr_->action_server_is_ready())
+    if (navigate_to_base_client_->action_server_is_ready())
     {
         auto goal_msg = NavigateToPose::Goal();
 
@@ -87,7 +78,7 @@ void MoveRobot::send_goal_()
         goal_msg.pose.header.stamp = node_handle_->now();
         double start_time = node_handle_->now().seconds();
 
-        log("Sending goal (x=" + ftos(goal_point_->x) + ", y=" + ftos(goal_point_->y) + ")");
+        log("Goal: (x=" + ftos(goal_point_->x) + ", y=" + ftos(goal_point_->y) + ")");
 
         auto send_goal_options = rclcpp_action::Client<NavigateToPose>::SendGoalOptions();
 
@@ -96,9 +87,12 @@ void MoveRobot::send_goal_()
             if (!future.get())
             {
                 log("Goal was rejected by server", LogLevel::Error);
+                set_step_(5);
             }
-
-            next_step_("Goal accepted...");
+            else
+            {   
+                next_step_("Goal accepted...");
+            }
         };
 
         send_goal_options.feedback_callback = [this](GoalHandleNavigateToPose::SharedPtr, const std::shared_ptr<const NavigateToPose::Feedback> feedback)
@@ -108,7 +102,7 @@ void MoveRobot::send_goal_()
 
         send_goal_options.result_callback = [this, start_time](const GoalHandleNavigateToPose::WrappedResult &result)
         {
-            if (result.code == rclcpp_action::ResultCode::ABORTED || result.code == rclcpp_action::ResultCode::CANCELED)
+            if (result.code == rclcpp_action::ResultCode::ABORTED || result.code == rclcpp_action::ResultCode::CANCELED || result.code == rclcpp_action::ResultCode::UNKNOWN)
             {
                 error_();
             }
@@ -122,7 +116,7 @@ void MoveRobot::send_goal_()
             }
         };
 
-        goal_handle_future_ = client_ptr_->async_send_goal(goal_msg, send_goal_options);
+        goal_handle_future_ = navigate_to_base_client_->async_send_goal(goal_msg, send_goal_options);
 
         next_step_("Sending goal...");
     }
