@@ -3,10 +3,9 @@
         {
             "name": "Linux",
             "includePath": [
-                "${workspaceFolder}/**",
+                "${workspaceFolder}/include",
                 "${workspaceFolder}/../petra_core/include",
                 "${workspaceFolder}/../../install/petra_core/include",
-                "${workspaceFolder}/../BehaviorTree.CPP/include",
                 "/opt/ros/dashing/include/**"
             ],
             "defines": [],

@@ -57,9 +57,9 @@ def generate_launch_description():
         ),
         Node(
             package='petra_central_control',
-            node_executable='CCU',
-            node_name='CCU',
+            node_executable='PeTRACentralControl',
+            node_name='PeTRACentralControl',
             output='screen',
-            on_exit=[LogInfo(msg=["CCU has stopped. Stopping everything..."]), emit_shutdown_action],
+            on_exit=[LogInfo(msg=["PeTRACentralControl has stopped. Stopping everything..."]), emit_shutdown_action],
         )
     ])

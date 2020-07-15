@@ -1,0 +1,25 @@
+<root main_tree_to_execute = "MainTree" >
+    <BehaviorTree ID="MainTree">
+        <ReactiveSequence>
+            <CheckStop/>
+            <CheckBattery/>
+            <CheckDiagnosticStatus/>
+            <CheckPatientCondition/>
+            <Sequence>
+                <Action ID="SkillSelection" selected_action="{selected_action}" />
+                <Fallback>
+                    <BlackboardCheckString value_A="{selected_action}" value_B="DevicePairing" return_on_mismatch="FAILURE" />
+                        <Action ID="DevicePairing"/>
+                    <BlackboardCheckString value_A="{selected_action}" value_B="BaseMovement" return_on_mismatch="FAILURE" />
+                        <Action ID="BaseMovement"/>
+                    <BlackboardCheckString value_A="{selected_action}" value_B="ArmMovement" return_on_mismatch="FAILURE" />
+                        <Action ID="ArmMovement"/>
+                    <BlackboardCheckString value_A="{selected_action}" value_B="BatteryCharging" return_on_mismatch="FAILURE" />
+                        <Action ID="BatteryCharging"/>
+                    <BlackboardCheckString value_A="{selected_action}" value_B="ConfirmDialog" return_on_mismatch="FAILURE" />
+                        <Action ID="ConfirmDialog"/>
+                </Fallback>
+            </Sequence>
+        </ReactiveSequence>
+    </BehaviorTree>
+ </root>

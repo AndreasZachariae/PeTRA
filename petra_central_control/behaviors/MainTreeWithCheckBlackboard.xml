@@ -1,0 +1,42 @@
+<root main_tree_to_execute = "MainTree" >
+
+    <include path="FreeWalking.xml"/>
+
+    <BehaviorTree ID="MainTree">
+        <ReactiveSequence>
+            <CheckStop/>
+            <CheckBattery/>
+            <CheckDiagnosticStatus/>
+            <CheckPatientCondition/>
+            <Sequence>
+                <Action ID="SkillSelection" selected_action="{selected_action}" />
+                <Fallback>
+                    <Sequence>
+                        <CheckBlackboard input="{selected_action}" compare_to="FreeWalking"/>
+                        <FreeWalking/>
+                    </Sequence>
+                    <Sequence>
+                        <CheckBlackboard input="{selected_action}" compare_to="DevicePairing"/>
+                        <Action ID="DevicePairing"/>
+                    </Sequence>
+                    <Sequence>
+                        <CheckBlackboard input="{selected_action}" compare_to="BaseMovement"/>
+                        <Action ID="BaseMovement"/>
+                    </Sequence>
+                    <Sequence>
+                        <CheckBlackboard input="{selected_action}" compare_to="ArmMovement"/>
+                        <Action ID="ArmMovement"/>
+                    </Sequence>
+                    <Sequence>
+                        <CheckBlackboard input="{selected_action}" compare_to="BatteryCharging"/>
+                        <Action ID="BatteryCharging"/>
+                    </Sequence>
+                    <Sequence>
+                        <CheckBlackboard input="{selected_action}" compare_to="ConfirmDialog"/>
+                        <Action ID="ConfirmDialog"/>
+                    </Sequence>
+                </Fallback>
+            </Sequence>
+        </ReactiveSequence>
+    </BehaviorTree>
+ </root>

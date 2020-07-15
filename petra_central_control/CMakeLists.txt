@@ -20,7 +20,7 @@ find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(rclcpp_action REQUIRED)
 find_package(petra_core REQUIRED)
-find_package(BehaviorTreeV3)
+find_package(BehaviorTree REQUIRED)
 
 include_directories(
   include 
@@ -32,42 +32,28 @@ set(dependencies
   "rclcpp_action"
   "petra_core"
 )
+file (GLOB SOURCES src/*.cpp)
+file (GLOB SOURCES_CONDITIONS src/conditions/*.cpp)
+file (GLOB SOURCES_ACTIONS src/actions/*.cpp)
+file (GLOB SOURCES_ACTIONS_BASE src/actions/base/*.cpp)
+file (GLOB SOURCES_ACTIONS_TYPES src/actions/types/*.cpp)
 
-set(CentralControlUnit_SRC
-  src/node.cpp
-  src/CentralControlUnit.cpp
-  src/Skill.cpp
-  src/SkillSelection.cpp
-  src/SystemMonitor.cpp
-  src/BaseMovement.cpp
-  src/UserDialog.cpp
-  src/DevicePairing.cpp
-  src/ArmMovement.cpp
-  src/BatteryCharging.cpp
-  src/FreeWalking.cpp
-  src/ConfirmDialog.cpp
-  src/MissionTest.cpp
-  src/Sequence.cpp
-  src/Fallback.cpp
-)
+add_executable(PeTRACentralControl
+    ${SOURCES}
+    ${SOURCES_CONDITIONS}
+    ${SOURCES_ACTIONS}
+    ${SOURCES_ACTIONS_BASE}
+    ${SOURCES_ACTIONS_TYPES})
 
-#make executables
-add_executable(CCU ${CentralControlUnit_SRC})
-target_link_libraries(CCU petra_core::petra_core_LIB BT::behaviortree_cpp_v3)
-ament_target_dependencies(CCU ${dependencies})
+target_link_libraries(PeTRACentralControl
+    petra_core::petra_core_LIB
+    BehaviorTree::behaviortree_cpp_v3)
+
+ament_target_dependencies(PeTRACentralControl ${dependencies})
 
 install(TARGETS
-  CCU
+  PeTRACentralControl
   DESTINATION lib/${PROJECT_NAME}
 )
-
-#configure_file()
-#file_copyfile(<COPY|INSTALL> files... DESTINATION <dir>
-#       [FILE_PERMISSIONS permissions...]
-#       [DIRECTORY_PERMISSIONS permissions...]
-#       [NO_SOURCE_PERMISSIONS] [USE_SOURCE_PERMISSIONS]
-#       [FILES_MATCHING]
-#       [[PATTERN <pattern> | REGEX <regex>]
-#        [EXCLUDE] [PERMISSIONS permissions...]] [...])
 
 ament_package()

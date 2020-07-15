@@ -1,0 +1,19 @@
+ <root main_tree_to_execute = "BaseMovement" >
+    <BehaviorTree ID="BaseMovement">
+        <Sequence>
+            <BaseMovementRequestGoal X="{X}" Y="{Y}"/>
+            <BaseMovementSendGoal X="{X}" Y="{Y}"/>
+        </Sequence>
+    </BehaviorTree>
+
+    <TreeNodeModel>
+        <Action ID="BaseMovementRequestGoal">
+            <output_port name="X" type="float"/>
+            <output_port name="Y" type="float"/>
+        </Action>
+        <Action ID="BaseMovementSendGoal">
+            <input_port name="X" type="float"/>
+            <input_port name="Y" type="float"/>
+        </Action>
+    </TreeNodeModel>
+ </root>

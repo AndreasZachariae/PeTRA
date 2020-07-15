@@ -1,0 +1,45 @@
+<root main_tree_to_execute = "MainTree" >
+
+    <include path="FreeWalking.xml"/>
+    <include path="Emergency.xml"/>
+    <include path="GuidedWalking.xml"/>
+    <include path="Recharge.xml"/>
+    <include path="TransportWithDevice.xml"/>
+
+    <include path="BaseMovement.xml"/>
+
+    <BehaviorTree ID="MainTree">
+        <ReactiveSequence>
+            <CheckStop/>
+            <CheckBattery/>
+            <CheckDiagnosticStatus/>
+            <CheckPatientCondition/>
+            <Sequence>
+                <SkillSelection selected_action="{selected_action}" />
+                <SkillSwitch variable="{selected_action}" case_1="DevicePairing" case_2="BaseMovement" case_3="ArmMovement" case_4="BatteryCharging" case_5="FreeWalking" case_6="GuidedWalking" case_7="TransportWithDevice">
+                    <DevicePairing/>
+                    <BaseMovement/>
+                    <ArmMovement/>
+                    <BatteryCharging/>
+                    <FreeWalking/>
+                    <GuidedWalking/>
+                    <TransportWithDevice/>
+                    <AlwaysFailureNode name="default_action"/>
+                </SkillSwitch>
+            </Sequence>
+        </ReactiveSequence>
+    </BehaviorTree>
+
+    <TreeNodeModel>
+        <Action ID="SkillSelection">
+            <output_port name="selected_action" type="std::string"/>
+        </Action>
+        <Action ID="DevicePairing"/>
+        <!--<Action ID="BaseMovement"/>-->
+        <Action ID="ArmMovement"/>
+        <Action ID="BatteryCharging"/>
+        <Action ID="ConfirmDialog">
+            <input_port name="message" type="std::string"/>
+        </Action>   
+    </TreeNodeModel>
+ </root>
