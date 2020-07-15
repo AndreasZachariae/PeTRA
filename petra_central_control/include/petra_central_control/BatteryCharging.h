@@ -4,7 +4,6 @@
 
 #include <petra_core/action/charge_battery.hpp>
 
-#include <petra_central_control/default.h>
 #include <petra_central_control/Skill.h>
 #include <petra_central_control/UserDialog.h>
 
@@ -19,6 +18,8 @@ public:
 protected:
     void spin_() override;
     void stop_() override;
+
+    void set_percentage(float goal_percentage);
 
 private:
     std::shared_ptr<rclcpp::Node> node_handle_;

@@ -11,8 +11,8 @@ public:
         initialized = 1,
         active = 2,
         stopped = 3,
-        finished = 4,
-        error = 5
+        succeeded = 4,
+        failed = 5
     };
 
     SkillState(Value value) : value_(value) {}
@@ -33,10 +33,10 @@ public:
             return "Active";
         case SkillState::stopped:
             return "Stopped";
-        case SkillState::finished:
-            return "Finished";
-        case SkillState::error:
-            return "Error";
+        case SkillState::succeeded:
+            return "Succeeded";
+        case SkillState::failed:
+            return "Failed";
 
         default:
             return "";

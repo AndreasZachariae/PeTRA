@@ -22,7 +22,7 @@ bool ThreadExecuter::cancel()
     if (is_running())
     {
         // Kill and cancel do not work (only cntl+c)
-        int r = pthread_kill(thread_handle_, SIGINT);
+        //int r = pthread_kill(thread_handle_, SIGINT);
         //int r = pthread_cancel(thread_handle_);
 
         thread_handle_ = 0;

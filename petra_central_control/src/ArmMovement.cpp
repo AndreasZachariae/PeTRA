@@ -12,6 +12,14 @@ ArmMovement::ArmMovement(std::shared_ptr<rclcpp::Node> node_handle) : Skill(node
         "MoveArm");
 }
 
+void ArmMovement::set_coordinates(Point goal_point, float gripper_position)
+{
+    goal_point_ = goal_point;
+    gripper_position_ = gripper_position;
+    
+    set_step_(2);
+}
+
 void ArmMovement::spin_()
 {
     switch (progress_.current_step)
@@ -23,7 +31,7 @@ void ArmMovement::spin_()
             send_goal_();
             break;
         case 5:
-            finish_();
+            succeed_();
             break;
     }
 }
@@ -53,7 +61,7 @@ void ArmMovement::request_coordinates_()
             //data_values ist nicht voll belegt wenn Communication durch /stop resetted wurde
             if (goal_point_dialog_.get_response()->data_values.size() == 4)
             {
-                goal_point_ = new Point(
+                goal_point_ = Point(
                     stof(goal_point_dialog_.get_response()->data_values.at(0)),
                     stof(goal_point_dialog_.get_response()->data_values.at(1)),
                     stof(goal_point_dialog_.get_response()->data_values.at(2)));
@@ -75,15 +83,15 @@ void ArmMovement::send_goal_()
         auto goal_msg = MoveArm::Goal();
 
         //get this value from user input
-        goal_msg.pose.position.x = goal_point_->x;
-        goal_msg.pose.position.y = goal_point_->y;
-        goal_msg.pose.position.z = goal_point_->z;
+        goal_msg.pose.position.x = goal_point_.x;
+        goal_msg.pose.position.y = goal_point_.y;
+        goal_msg.pose.position.z = goal_point_.z;
         goal_msg.pose.position.z = 0;
         goal_msg.pose.orientation.w = 1; //hard-coded orientation (x=0, y=0, z=0, w=1)
         goal_msg.gripper_position = gripper_position_;
         double start_time = node_handle_->now().seconds();
 
-        log("Goal: (x=" + ftos(goal_point_->x) + ", y=" + ftos(goal_point_->y) + ", z=" + ftos(goal_point_->z) + ")");
+        log("Goal: (x=" + ftos(goal_point_.x) + ", y=" + ftos(goal_point_.y) + ", z=" + ftos(goal_point_.z) + ")");
 
         auto send_goal_options = rclcpp_action::Client<MoveArm>::SendGoalOptions();
 
@@ -109,13 +117,13 @@ void ArmMovement::send_goal_()
         {
             if (result.code == rclcpp_action::ResultCode::ABORTED || result.code == rclcpp_action::ResultCode::CANCELED || result.code == rclcpp_action::ResultCode::UNKNOWN)
             {
-                error_();
+                fail_();
             }
             else
             {
                 if (result.result->success == true)
                 {
-                    log("Goal reached! (x=" + ftos(goal_point_->x) + ", y=" + ftos(goal_point_->y) + ", z=" + ftos(goal_point_->z) + "), Total time: " + std::to_string((int)(node_handle_->now().seconds() - start_time)) + "s");
+                    log("Goal reached! (x=" + ftos(goal_point_.x) + ", y=" + ftos(goal_point_.y) + ", z=" + ftos(goal_point_.z) + "), Total time: " + std::to_string((int)(node_handle_->now().seconds() - start_time)) + "s");
                 }
                 else
                 {

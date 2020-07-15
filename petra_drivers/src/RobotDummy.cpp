@@ -3,18 +3,26 @@
 RobotDummy::RobotDummy() : Node("RobotDummy")
 {
     goal_subscription_ = create_subscription<geometry_msgs::msg::PoseStamped>("move_base_simple/goal", 10, std::bind(&RobotDummy::goal_callback_, this, std::placeholders::_1));
+    
     stop_subscription_ = create_subscription<std_msgs::msg::Empty>("Stop", 10, std::bind(&RobotDummy::stop_callback_, this, std::placeholders::_1));
+    
     odometry_publisher_ = create_publisher<nav_msgs::msg::Odometry>("odom", 10);
 
-    charge_battery_server_ = rclcpp_action::create_server<ChargeBattery>(
-        get_node_base_interface(),
-        get_node_clock_interface(),
-        get_node_logging_interface(),
-        get_node_waitables_interface(),
-        "ChargeBattery",
-        std::bind(&RobotDummy::handle_goal_, this, std::placeholders::_1, std::placeholders::_2),
-        std::bind(&RobotDummy::handle_cancel_, this, std::placeholders::_1),
-        std::bind(&RobotDummy::handle_accepted_, this, std::placeholders::_1));
+    diagnostic_status_publisher_ = create_publisher<diagnostic_msgs::msg::DiagnosticStatus>("DiagnosticStatus", 10);
+
+    set_battery_publisher_ = create_publisher<std_msgs::msg::Float32>("SetBattery", 10);
+
+    timer_ = create_wall_timer(std::chrono::seconds(1), std::bind(&RobotDummy::timer_callback_, this));
+}
+
+void RobotDummy::timer_callback_()
+{
+    auto diagnostic = diagnostic_msgs::msg::DiagnosticStatus();
+    diagnostic.level = diagnostic_msgs::msg::DiagnosticStatus::OK;
+    diagnostic.name = "RobotDummy";
+    diagnostic.hardware_id = "1";
+
+    diagnostic_status_publisher_->publish(diagnostic);
 }
 
 void RobotDummy::simulate_movement_(Point goal)
@@ -33,8 +41,7 @@ void RobotDummy::simulate_movement_(Point goal)
         odom.pose.pose.position.y = current_position_.y;
 
         odometry_publisher_->publish(odom);
-
-        battery_percentage_ -= 0.001;
+        set_battery_publisher_->publish(std_msgs::msg::Float32().set__data(-0.001));
 
         std::this_thread::sleep_for(std::chrono::milliseconds((int)((accuracy_ / velocity_) * 1000)));
     }
@@ -58,54 +65,6 @@ void RobotDummy::stop_callback_(const std_msgs::msg::Empty::SharedPtr msg)
     stop_flipflop_ = !stop_flipflop_;
     RCLCPP_WARN(get_logger(), "Stop recieved, resetting...");
     (void)msg;
-}
-
-rclcpp_action::GoalResponse RobotDummy::handle_goal_(const rclcpp_action::GoalUUID &uuid, std::shared_ptr<const ChargeBattery::Goal> goal)
-{
-    RCLCPP_INFO(get_logger(), "Received charging request to %.1f%%", (goal->goal_percentage * 100));
-    (void)uuid;
-    return rclcpp_action::GoalResponse::ACCEPT_AND_EXECUTE;
-}
-
-rclcpp_action::CancelResponse RobotDummy::handle_cancel_(const std::shared_ptr<GoalHandleChargeBattery> goal_handle)
-{
-    RCLCPP_INFO(get_logger(), "Received request to cancel goal");
-    (void)goal_handle;
-    return rclcpp_action::CancelResponse::ACCEPT;
-}
-
-void RobotDummy::execute_(const std::shared_ptr<GoalHandleChargeBattery> goal_handle)
-{
-    RCLCPP_INFO(get_logger(), "Executing goal");
-
-    auto feedback = std::make_shared<ChargeBattery::Feedback>();
-    auto result = std::make_shared<ChargeBattery::Result>();
-
-    const auto goal = goal_handle->get_goal();
-
-    //charge 10% per second
-    while ((battery_percentage_ < goal->goal_percentage) && rclcpp::ok())
-    {
-        battery_percentage_ += 0.1;
-        feedback->current_state.percentage = battery_percentage_;
-
-        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-
-        goal_handle->publish_feedback(feedback);
-        RCLCPP_INFO(get_logger(), "Publish Feedback");
-    }
-
-    if (rclcpp::ok())
-    {
-        result->success = true;
-        goal_handle->succeed(result);
-        RCLCPP_INFO(get_logger(), "Charging succeeded");
-    }
-}
-
-void RobotDummy::handle_accepted_(const std::shared_ptr<GoalHandleChargeBattery> goal_handle)
-{
-    std::thread{std::bind(&RobotDummy::execute_, this, std::placeholders::_1), goal_handle}.detach();
 }
 
 int main(int argc, char *argv[])

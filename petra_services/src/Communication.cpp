@@ -11,8 +11,6 @@ Communication::Communication() : Node("Communication")
     input_string_subscription_ = create_subscription<std_msgs::msg::String>("InputString", 10,
                                     std::bind(&Communication::input_string_callback_, this, std::placeholders::_1), input_opt);
 
-    get_input_client_ = create_client<petra_core::srv::GetInput>("GetInput", rmw_qos_profile_services_default, input_callback_group_);
-
     stop_subscription_ = create_subscription<std_msgs::msg::Empty>("Stop", 10,
                             std::bind(&Communication::stop_callback_, this, std::placeholders::_1), input_opt);
 

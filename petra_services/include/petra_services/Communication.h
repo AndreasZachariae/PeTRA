@@ -11,7 +11,6 @@
 #include <std_msgs/msg/string.hpp>
 
 #include <petra_core/default.h>
-#include <petra_core/srv/get_input.hpp>
 #include <petra_core/srv/user_dialog.hpp>
 
 using UserDialog = petra_core::srv::UserDialog;
@@ -35,7 +34,6 @@ private:
     rclcpp::Publisher<std_msgs::msg::String>::SharedPtr display_string_publisher_;
     rclcpp::Subscription<std_msgs::msg::String>::SharedPtr input_string_subscription_;
     rclcpp::Subscription<std_msgs::msg::Empty>::SharedPtr stop_subscription_;
-    rclcpp::Client<petra_core::srv::GetInput>::SharedPtr get_input_client_;
     rclcpp::Service<UserDialog>::SharedPtr dialog_service_;
 
     std::vector<std::string> input_buffer_;

@@ -23,6 +23,7 @@ find_package(std_msgs REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(nav_msgs REQUIRED)
+find_package(diagnostic_msgs REQUIRED)
 
 set(dependencies
   builtin_interfaces
@@ -30,12 +31,13 @@ set(dependencies
   sensor_msgs
   geometry_msgs
   nav_msgs
+  diagnostic_msgs
 )
 
 rosidl_generate_interfaces(${PROJECT_NAME}
-  "msg/DateTime.msg"
   "msg/DialogDataType.msg"
-  "srv/GetInput.srv"
+  "msg/PatientCondition.msg"
+  "msg/EmergencyStop.msg"
   "srv/UserDialog.srv"
   "action/ChargeBattery.action"
   "action/NavigateToPose.action"

@@ -29,7 +29,7 @@ public:
 private:
     std::shared_ptr<rclcpp::Node> node_handle_;
     rclcpp::Client<petra_core::srv::UserDialog>::SharedPtr dialog_client_;
-    std::shared_ptr<petra_core::srv::UserDialog_Request> dialog_;
+    std::shared_ptr<petra_core::srv::UserDialog_Request> request_;
     std::shared_future<std::shared_ptr<petra_core::srv::UserDialog_Response>> response_future_;
 
     rclcpp::Publisher<std_msgs::msg::String>::SharedPtr display_string_publisher_;

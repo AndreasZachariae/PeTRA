@@ -6,7 +6,6 @@
 
 #include <petra_core/action/pair_device.hpp>
 
-#include <petra_central_control/default.h>
 #include <petra_central_control/Skill.h>
 #include <petra_central_control/UserDialog.h>
 #include <petra_central_control/DeviceType.h>
@@ -18,6 +17,9 @@ class DevicePairing : public Skill
 {
 public:
     DevicePairing(std::shared_ptr<rclcpp::Node> node_handle);
+
+    void set_mode(int pairing_mode);
+    void set_mode_and_device(int pairing_mode, DeviceType device);
 
 protected:
     void spin_() override;

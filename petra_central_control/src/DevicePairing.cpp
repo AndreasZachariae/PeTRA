@@ -12,6 +12,21 @@ DevicePairing::DevicePairing(std::shared_ptr<rclcpp::Node> node_handle) : Skill(
         "PairDevice");
 }
 
+void DevicePairing::set_mode(int pairing_mode)
+{
+    pairing_mode_ = pairing_mode;
+    
+    set_step_(2);
+}
+
+void DevicePairing::set_mode_and_device(int pairing_mode, DeviceType device)
+{
+    pairing_mode_ = pairing_mode;
+    device_ = device;
+
+    set_step_(4);
+}
+
 void DevicePairing::spin_()
 {
     switch (progress_.current_step)
@@ -40,7 +55,7 @@ void DevicePairing::spin_()
             }
             break;
         case 7:
-            finish_();
+            succeed_();
             break;
     }
 }
@@ -184,7 +199,7 @@ void DevicePairing::send_action_goal_(PairDevice::Goal goal)
         {
             if (result.code == rclcpp_action::ResultCode::ABORTED || result.code == rclcpp_action::ResultCode::CANCELED || result.code == rclcpp_action::ResultCode::UNKNOWN)
             {
-                error_();
+                fail_();
             }
             else
             {

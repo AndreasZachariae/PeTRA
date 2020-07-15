@@ -34,13 +34,18 @@ set(dependencies
 #make executables
 add_executable(Communication src/Communication.cpp)
 ament_target_dependencies(Communication ${dependencies})
+
 add_executable(Navigation2Dummy src/Navigation2Dummy.cpp)
 ament_target_dependencies(Navigation2Dummy ${dependencies} "rclcpp_action")
+
+add_executable(PatientMonitoringDummy src/PatientMonitoringDummy.cpp)
+ament_target_dependencies(PatientMonitoringDummy ${dependencies})
 
 
 install(TARGETS
   Communication
   Navigation2Dummy
+  PatientMonitoringDummy
   DESTINATION lib/${PROJECT_NAME}
 )
 

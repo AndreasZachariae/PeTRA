@@ -12,6 +12,21 @@ ManipulatorDummy::ManipulatorDummy(const rclcpp::NodeOptions &options) : Node("M
         std::bind(&ManipulatorDummy::handle_goal_, this, std::placeholders::_1, std::placeholders::_2),
         std::bind(&ManipulatorDummy::handle_cancel_, this, std::placeholders::_1),
         std::bind(&ManipulatorDummy::handle_accepted_, this, std::placeholders::_1));
+
+    diagnostic_status_publisher_ = create_publisher<diagnostic_msgs::msg::DiagnosticStatus>("DiagnosticStatus", 10);
+
+    timer_ = create_wall_timer(std::chrono::seconds(1), std::bind(&ManipulatorDummy::timer_callback_, this));
+}
+
+void ManipulatorDummy::timer_callback_()
+{
+    auto diagnostic = diagnostic_msgs::msg::DiagnosticStatus();
+    diagnostic.level = diagnostic_msgs::msg::DiagnosticStatus::OK;
+    diagnostic.name = "ManipulatorDummy";
+    diagnostic.hardware_id = "3";
+
+    //RCLCPP_INFO(get_logger(), "Publishing DiagnosticStatus");
+    diagnostic_status_publisher_->publish(diagnostic);
 }
 
 rclcpp_action::GoalResponse ManipulatorDummy::handle_goal_(const rclcpp_action::GoalUUID &uuid, std::shared_ptr<const MoveArm::Goal> goal)

@@ -48,12 +48,16 @@ ament_target_dependencies(PairingModuleDummy ${dependencies} "rclcpp_action")
 add_executable(ManipulatorDummy src/ManipulatorDummy.cpp)
 ament_target_dependencies(ManipulatorDummy ${dependencies} "rclcpp_action")
 
+add_executable(BatteryDummy src/BatteryDummy.cpp)
+ament_target_dependencies(BatteryDummy ${dependencies} "rclcpp_action")
+
 install(TARGETS
   Screen
   Keyboard
   RobotDummy
   PairingModuleDummy
   ManipulatorDummy
+  BatteryDummy
   DESTINATION lib/${PROJECT_NAME}
 )
 

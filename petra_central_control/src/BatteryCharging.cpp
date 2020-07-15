@@ -12,6 +12,13 @@ BatteryCharging::BatteryCharging(std::shared_ptr<rclcpp::Node> node_handle) : Sk
         "ChargeBattery");
 }
 
+void BatteryCharging::set_percentage(float goal_percentage)
+{
+    goal_percentage_ = goal_percentage;
+
+    set_step_(2);
+}
+
 void BatteryCharging::spin_()
 {
     switch (progress_.current_step)
@@ -23,7 +30,7 @@ void BatteryCharging::spin_()
             send_goal_();
             break;
         case 5:
-            finish_();
+            succeed_();
             break;
     }
 }
@@ -97,7 +104,7 @@ void BatteryCharging::send_goal_()
         {
             if (result.code == rclcpp_action::ResultCode::ABORTED || result.code == rclcpp_action::ResultCode::CANCELED || result.code == rclcpp_action::ResultCode::UNKNOWN)
             {
-                error_();
+                fail_();
             }
             else
             {

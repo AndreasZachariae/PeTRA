@@ -1,6 +1,51 @@
 #include <petra_central_control/BaseMovement.h>
 
-BaseMovement::BaseMovement(std::shared_ptr<rclcpp::Node> node_handle) : Skill(node_handle, "BaseMovement"), node_handle_(node_handle)
+BaseMovement::BaseMovement(std::shared_ptr<rclcpp::Node> node_handle) 
+: Skill(node_handle, "BaseMovement"), BT::CoroActionNode("not used", {}), node_handle_(node_handle)
+{
+}
+
+BaseMovement::BaseMovement(const std::string& name, const BT::NodeConfiguration& config, std::shared_ptr<rclcpp::Node> node_handle) 
+: Skill(node_handle, "BaseMovement"), BT::CoroActionNode(name, config), node_handle_(node_handle)
+{
+}
+
+BT::NodeStatus BaseMovement::tick()
+{
+    while (rclcpp::ok())
+    {
+        if (get_state() == SkillState::succeeded)
+        {
+            log("[BehaviorTree] " + name() + " " + get_state().to_string());
+            return BT::NodeStatus::SUCCESS;
+        }
+
+        if (get_state() == SkillState::failed)
+        {
+            log("[BehaviorTree] " + name() + " " + get_state().to_string());
+            return BT::NodeStatus::FAILURE;
+        }
+        
+        setStatusRunningAndYield();
+    }
+
+    return BT::NodeStatus::FAILURE;
+}
+
+void BaseMovement::halt()
+{
+    //log("HALT REQUESTED!");
+    CoroActionNode::halt();
+}
+
+void BaseMovement::set_goal(Point goal_point)
+{
+    goal_point_ = goal_point;
+    
+    set_step_(2);
+}
+
+void BaseMovement::init_()
 {
     progress_.steps = 5;
     
@@ -23,7 +68,7 @@ void BaseMovement::spin_()
             send_goal_();
             break;
         case 5:
-            finish_();
+            succeed_();
             break;
     }
 }
@@ -51,7 +96,7 @@ void BaseMovement::request_location_()
             //data_values ist nicht voll belegt wenn Communication durch /stop resetted wurde
             if (goal_point_dialog_.get_response()->data_values.size() == 2)
             {
-                goal_point_ = new Point(
+                goal_point_ = Point(
                     stof(goal_point_dialog_.get_response()->data_values.at(0)),
                     stof(goal_point_dialog_.get_response()->data_values.at(1)));
 
@@ -70,15 +115,15 @@ void BaseMovement::send_goal_()
         auto goal_msg = NavigateToPose::Goal();
 
         //get this value from user input
-        goal_msg.pose.pose.position.x = goal_point_->x;
-        goal_msg.pose.pose.position.y = goal_point_->y;
+        goal_msg.pose.pose.position.x = goal_point_.x;
+        goal_msg.pose.pose.position.y = goal_point_.y;
         goal_msg.pose.pose.position.z = 0;
         goal_msg.pose.pose.orientation.w = 1; //hard-coded orientation (x=0, y=0, z=0, w=1)
         goal_msg.pose.header.frame_id = "map";
         goal_msg.pose.header.stamp = node_handle_->now();
         double start_time = node_handle_->now().seconds();
 
-        log("Goal: (x=" + ftos(goal_point_->x) + ", y=" + ftos(goal_point_->y) + ")");
+        log("Goal: (x=" + ftos(goal_point_.x) + ", y=" + ftos(goal_point_.y) + ")");
 
         auto send_goal_options = rclcpp_action::Client<NavigateToPose>::SendGoalOptions();
 
@@ -104,13 +149,13 @@ void BaseMovement::send_goal_()
         {
             if (result.code == rclcpp_action::ResultCode::ABORTED || result.code == rclcpp_action::ResultCode::CANCELED || result.code == rclcpp_action::ResultCode::UNKNOWN)
             {
-                error_();
+                fail_();
             }
             else
             {
                 //result message is std_msgs/Empty
 
-                log("Goal reached! (x=" + ftos(goal_point_->x) + ", y=" + ftos(goal_point_->y) + "), Total time: " + std::to_string((int)(node_handle_->now().seconds() - start_time)) + "s");
+                log("Goal reached! (x=" + ftos(goal_point_.x) + ", y=" + ftos(goal_point_.y) + "), Total time: " + std::to_string((int)(node_handle_->now().seconds() - start_time)) + "s");
                 
                 next_step_("Received result...");
             }

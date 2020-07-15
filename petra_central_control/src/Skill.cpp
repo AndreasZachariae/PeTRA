@@ -8,6 +8,7 @@ Skill::Skill(std::shared_ptr<rclcpp::Node> node_handle, std::string name, bool b
         stop_subscription_ = node_handle_->create_subscription<std_msgs::msg::Empty>("Stop", 10, [&](const std_msgs::msg::Empty::SharedPtr msg) 
         {
             //log("Stop recieved", LogLevel::Error);
+            (void)msg;
             stop();
         });
     }
@@ -55,25 +56,23 @@ void Skill::stop()
         
         stop_();
 
-        set_state_(SkillState::finished);
+        fail_();
     }
 }
 
-void Skill::finish_()
+void Skill::succeed_()
 {
     if (state_ == SkillState::active)
     {
-        set_state_(SkillState::finished);
+        set_state_(SkillState::succeeded);
     }
 }
 
-void Skill::error_()
+void Skill::fail_()
 {
-    if (state_ == SkillState::active)
+    if ((state_ == SkillState::active) || (state_ == SkillState::stopped))
     {
-        set_state_(SkillState::error);
-
-        set_state_(handle_error_());
+        set_state_(SkillState::failed);
     }
 }
 

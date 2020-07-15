@@ -4,7 +4,6 @@
 
 #include <rclcpp/rclcpp.hpp>
 
-#include <petra_central_control/default.h>
 #include <petra_central_control/SkillState.h>
 #include <petra_central_control/Progress.h>
 
@@ -27,8 +26,8 @@ public:
 protected:
     Progress progress_;
 
-    void finish_();
-    void error_();
+    void succeed_();
+    void fail_();
     void next_step_(std::string msg = "...");
     void set_step_(int step);
 
@@ -36,7 +35,6 @@ protected:
     virtual void start_() {}
     virtual void spin_() {}
     virtual void stop_() {}
-    virtual SkillState handle_error_() { return SkillState::error; }
 
 private:
     rclcpp::Subscription<std_msgs::msg::Empty>::SharedPtr stop_subscription_;

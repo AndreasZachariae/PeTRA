@@ -3,10 +3,10 @@
 UserDialog::UserDialog(std::shared_ptr<rclcpp::Node> node_handle, std::string title, std::string msg, uint8_t importance) 
 : Component(title), node_handle_(node_handle)
 {
-    dialog_ = std::make_shared<petra_core::srv::UserDialog::Request>();
-    dialog_->title = title;
-    dialog_->msg = msg;
-    dialog_->importance = importance;
+    request_ = std::make_shared<petra_core::srv::UserDialog::Request>();
+    request_->title = title;
+    request_->msg = msg;
+    request_->importance = importance;
     dialog_client_ = node_handle_->create_client<petra_core::srv::UserDialog>("UserDialog");
 
     display_string_publisher_ = node_handle_->create_publisher<std_msgs::msg::String>("DisplayString", 10);
@@ -42,14 +42,14 @@ void UserDialog::add_key_(int type, std::string key, std::string min, std::strin
     data_type.max = max;
     data_type.default_value = default_value;
 
-    dialog_->data_keys.push_back(data_type);
+    request_->data_keys.push_back(data_type);
 }
 
 bool UserDialog::send_dialog(std::function<void()> callback)
 {
     if (dialog_client_->service_is_ready())
     {
-        response_future_ = dialog_client_->async_send_request(dialog_, [callback](rclcpp::Client<petra_core::srv::UserDialog>::SharedFuture future) 
+        response_future_ = dialog_client_->async_send_request(request_, [callback](rclcpp::Client<petra_core::srv::UserDialog>::SharedFuture future) 
         {
             callback();
             (void)future;

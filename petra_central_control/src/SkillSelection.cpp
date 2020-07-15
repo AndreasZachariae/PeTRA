@@ -1,20 +1,56 @@
 #include <petra_central_control/SkillSelection.h>
+
 #include <petra_central_control/BaseMovement.h>
 #include <petra_central_control/ArmMovement.h>
 #include <petra_central_control/DevicePairing.h>
 #include <petra_central_control/BatteryCharging.h>
+#include <petra_central_control/FreeWalking.h>
+#include <petra_central_control/MissionTest.h>
 
-SkillSelection::SkillSelection(CentralControlUnit* ccu) : Skill(ccu->node_handle, "SkillSelection"), ccu_ptr_(ccu)
+SkillSelection::SkillSelection(const std::string& name, const BT::NodeConfiguration& config, CentralControlUnit* ccu) 
+: Skill(ccu->node_handle, "SkillSelection"), BT::AsyncActionNode(name, config), ccu_ptr_(ccu)
 {
-    progress_.steps = 2;
+}
+
+SkillSelection::SkillSelection(CentralControlUnit* ccu) 
+: Skill(ccu->node_handle, "SkillSelection"), BT::AsyncActionNode("not used",{}), ccu_ptr_(ccu)
+{
+}
+
+BT::NodeStatus SkillSelection::tick()
+{
+    /*
+    halt_requested_.store(false);
+    
+    //while tick() is blocked, BT::NodeStatus = RUNNING
+    while(!halt_requested_ && rclcpp::ok() && (get_state() != SkillState::finished))
+    {
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    }
+
+    return halt_requested_ ? BT::NodeStatus::FAILURE : BT::NodeStatus::SUCCESS;
+    */
+
+   log("SkillSelection should not be used as behavior Action Node because it would be possible to recursevly call other behavior trees, which is undefined behavior");
+
+   return BT::NodeStatus::FAILURE;
+}
+
+void SkillSelection::halt()
+{
+        halt_requested_.store(true);
 }
 
 void SkillSelection::init_()
 {
+    progress_.steps = 2;
+
     default_options_.push_back("BaseMovement");
     default_options_.push_back("ArmMovement");
     default_options_.push_back("DevicePairing");
     default_options_.push_back("BatteryCharging");
+    default_options_.push_back("MissionTest");
+    default_options_.push_back("FreeWalking");
     default_options_.push_back("Shutdown CCU");
 }
 
@@ -26,7 +62,7 @@ void SkillSelection::spin_()
             select_skill_();
             break;
         case 2:
-            finish_();
+            succeed_();
             break;
     }
 }
@@ -81,6 +117,14 @@ void SkillSelection::queue_chosen_skill_(std::string skill_str)
     else if (skill_str == "BatteryCharging")
     {
         ccu_ptr_->add_skill(std::make_shared<BatteryCharging>(ccu_ptr_->node_handle));
+    }
+    else if (skill_str == "MissionTest")
+    {
+        ccu_ptr_->add_skill(std::make_shared<MissionTest>(ccu_ptr_->node_handle));
+    }
+    else if (skill_str == "FreeWalking")
+    {
+        ccu_ptr_->add_skill(std::make_shared<FreeWalking>(ccu_ptr_), MISSION);
     }
     else if (skill_str == "Shutdown CCU")
     {

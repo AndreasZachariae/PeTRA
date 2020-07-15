@@ -5,11 +5,11 @@
 class Event
 {
 public:
+  Event(const std::string &type, const std::string &message) : type(type), message(message), id_(++max_id_) {}
+  Event(const std::string &type) : Event(type, "") {}
+
   std::string type;
   std::string message;
-
-  Event(const std::string &type, const std::string &message) : id_(++max_id_), type(type), message(message) {}
-  Event(const std::string &type) : Event(type, "") {}
 
   int id() { return id_; }
   

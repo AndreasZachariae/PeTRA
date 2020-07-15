@@ -20,11 +20,11 @@ def generate_launch_description():
         #    node_name='Keyboard',
         #    output='screen'
         #),
-        Node(
-            package='petra_drivers',
-            node_executable='RobotDummy',
-            node_name='RobotDummy'
-        ),
+        #Node(
+        #    package='petra_drivers',
+        #    node_executable='RobotDummy',
+        #    node_name='RobotDummy'
+        #),
         Node(
             package='petra_services',
             node_executable='Communication',

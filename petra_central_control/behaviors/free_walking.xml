@@ -1,0 +1,14 @@
+ <root>
+     <BehaviorTree>
+        <ReactiveSequence>
+            <CheckCondition/>
+            <Sequence>
+                <Movement1/>
+                <Confirm/>
+                <Movement2/>
+                <Confirm/>
+                <Movement3/>
+            </Sequence>
+        </ReactiveSequence>
+     </BehaviorTree>
+ </root>

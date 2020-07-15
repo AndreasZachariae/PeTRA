@@ -15,7 +15,9 @@ CentralControlUnit::~CentralControlUnit()
 
 void CentralControlUnit::init()
 {
-    add_skill(std::make_shared<SystemMonitor>(node_handle), true);
+    //add_skill(std::make_shared<SkillSelection>(this));
+
+    add_skill(std::make_shared<SystemMonitor>(this), BACKGROUND);
 
     set_state_(CCUState::initialized);
 }
@@ -31,16 +33,26 @@ void CentralControlUnit::run()
 
     while ((state_ == CCUState::active) && rclcpp::ok())
     {
-        if (skill_queue_.empty())
+        if (!mission_queue_.empty())
+        {
+            if (!spin_skill_(mission_queue_.front()))
+            {
+                mission_queue_.pop();
+            }
+        }
+
+        if (!skill_queue_.empty())
+        {
+            if (!spin_skill_(skill_queue_.front()))
+            {
+                skill_queue_.pop();
+            }
+        }
+        else
         {
             add_skill(std::make_shared<SkillSelection>(this));
         }
-
-        if (!spin_skill_(skill_queue_.front()))
-        {
-            skill_queue_.pop();
-        }
-
+        
         for (uint index = 0; index < background_skills_.size(); ++index)
         {
             if (!spin_skill_(background_skills_[index]))
@@ -49,20 +61,25 @@ void CentralControlUnit::run()
             }
         }
         
+        //std::this_thread::sleep_for(std::chrono::milliseconds(100));
         rclcpp::spin_some(node_handle);
     }
 
-    set_state_(CCUState::finished);
+    if (state_ != CCUState::finished)
+    {
+        set_state_(CCUState::finished);
+    }
+    
 }
 
 bool CentralControlUnit::spin_skill_(std::shared_ptr<Skill> skill_ptr)
 {
-    if (skill_ptr->get_state() == SkillState::finished)
+    if ((skill_ptr->get_state() == SkillState::succeeded) || (skill_ptr->get_state() == SkillState::failed))
     {
         return false;
     }
 
-    if ((skill_ptr->get_state() == SkillState::uninitialized) | (skill_ptr->get_state() == SkillState::initialized))
+    if ((skill_ptr->get_state() == SkillState::uninitialized) || (skill_ptr->get_state() == SkillState::initialized))
     {
         skill_ptr->start();
     }
@@ -72,16 +89,21 @@ bool CentralControlUnit::spin_skill_(std::shared_ptr<Skill> skill_ptr)
     return true;
 }
 
-void CentralControlUnit::add_skill(std::shared_ptr<Skill> skill_ptr, bool background)
+void CentralControlUnit::add_skill(std::shared_ptr<Skill> skill_ptr, skill_type type)
 {
-    if (background)
+    switch (type)
     {
-        background_skills_.push_back(skill_ptr);
-        skill_ptr.get()->start();
-    }
-    else
-    {
+    case NORMAL:
         skill_queue_.push(skill_ptr);
+        break;
+    case BACKGROUND:
+        background_skills_.push_back(skill_ptr);
+        break;
+    case MISSION:
+        mission_queue_.push(skill_ptr);
+        break;
+    default:
+        break;
     }
 }
 
@@ -90,4 +112,12 @@ void CentralControlUnit::set_state_(CCUState state)
     state_ = state;
 
     log(state_.to_string());
+}
+
+void CentralControlUnit::pop_all_skills()
+{
+    while (!skill_queue_.empty())
+    {
+        skill_queue_.pop();
+    }
 }
