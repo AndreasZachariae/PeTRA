@@ -1,0 +1,10 @@
+ <root main_tree_to_execute = "BaseMovementWithRequest" >
+    <BehaviorTree ID="BaseMovementWithRequest">
+        <Sequence>
+            <FloatParameterRequest title="Bitte geben Sie x und y in [m] an"
+                                   value="{x}" key="x" min="-10" max="10"/>
+            <FloatParameterRequest value="{y}" key="y" min="-10" max="10"/>
+            <BaseMovement x="{x}" y="{y}"/>
+        </Sequence>
+    </BehaviorTree>
+ </root>

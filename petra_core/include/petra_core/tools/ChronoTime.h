@@ -7,14 +7,14 @@
 class ChronoTime
 {
 private:
-  std::chrono::system_clock::time_point time_;
+    std::chrono::system_clock::time_point time_;
 
 public:
-  ChronoTime();
-  ~ChronoTime();
-  
-  int64_t duration();
-  int64_t duration(const ChronoTime &until);
+    ChronoTime();
+    ~ChronoTime();
 
-  std::string to_string(const std::string& format) const;
+    int64_t duration();
+    int64_t duration(const ChronoTime &until);
+
+    std::string to_string(const std::string &format) const;
 };

@@ -1,0 +1,230 @@
+<root main_tree_to_execute = "MainTree" >
+
+    <BehaviorTree ID="ArmMovementWithRequest">
+        <Sequence>
+            <FloatParameterRequest title="Bitte geben Sie x, y und z in [mm] an"
+                                   value="{x}" key="x" min="-1000" max="1000"/>
+            <FloatParameterRequest value="{y}" key="y" min="-1000" max="1000"/>
+            <FloatParameterRequest value="{z}" key="z" min="-1000" max="1000"/>
+            <FloatParameterRequest msg="Geben Sie die Greiferposition von 0 [open] bis 1 [closed] an"
+                                   value="{gripper_position}" key="gripper_position" min="0" max="1"/>
+            <ArmMovement x="{x}" y="{y}" z="{z}" gripper_position="{gripper_position}"/>
+        </Sequence>
+    </BehaviorTree>
+
+    <BehaviorTree ID="BaseMovementWithRequest">
+        <Sequence>
+            <FloatParameterRequest title="Bitte geben Sie x und y in [m] an"
+                                   value="{x}" key="x" min="-10" max="10"/>
+            <FloatParameterRequest value="{y}" key="y" min="-10" max="10"/>
+            <BaseMovement x="{x}" y="{y}"/>
+        </Sequence>
+    </BehaviorTree>
+
+    <BehaviorTree ID="BatteryChargingWithRequest">
+        <Sequence>
+            <FloatParameterRequest title="Bitte geben Sie die Zielladung an von 0 [empty] bis 1 [full]"
+                                   value="{goal_percentage}" key="goal_percentage" min="0" max="1"/>
+            <BatteryCharging goal_percentage="{goal_percentage}"/>
+        </Sequence>
+    </BehaviorTree>
+
+    <BehaviorTree ID="DevicePairingWithRequest">
+        <Sequence>
+            <!--pairing_mode und device_type müssen den Konstanten im .action file entsprechen-->
+            <IntParameterRequest title="Bitte geben Sie den Kopplungsmodus und das Gerät an"
+                                   options="pair,unpair"
+                                   value="{pairing_mode}"/>
+            <IntParameterRequest options="wheelchair,rollator,hospitalbed,chargingstation"
+                                   value="{device_type}"/>
+            <DevicePairing pairing_mode="{pairing_mode}" device_type="{device_type}"/>
+        </Sequence>
+    </BehaviorTree>
+
+    <BehaviorTree ID="Emergency">
+        <Sequence>
+            <StringParameterRequest title="Emergency finished?" 
+                                    msg="type [y] or [n]"
+                                    value="{confirm}"/>
+            <CheckBlackboard input="{confirm}" compare_to="y" />
+        </Sequence>
+    </BehaviorTree>
+
+    <BehaviorTree ID="FreeWalking">
+        <Sequence>
+            <!--room1 = (2,2)-->
+            <BaseMovement x="2" y="2"/>
+            <StringParameterRequest title="Start walking to destination?" 
+                                    msg="type [y] or [n]"
+                                    value="{confirm}"/>
+            <CheckBlackboard input="{confirm}" compare_to="y" />
+            <!--room2 = (5,5)-->
+            <BaseMovement x="5" y="5"/>
+            <StringParameterRequest title="Patient arrived?" 
+                                    msg="type [y] or [n]"
+                                    value="{confirm}"/>
+            <CheckBlackboard input="{confirm}" compare_to="y" />
+            <!--waiting_area = (0,0)-->
+            <BaseMovement x="0" y="0"/>
+        </Sequence>
+    </BehaviorTree>
+
+    <BehaviorTree ID="GuidedWalking">
+        <Sequence>
+            <!--room1 = (2,2)-->
+            <BaseMovement x="2" y="2"/>
+            <!--arm_support_position = (200,200,0,0)-->
+            <ArmMovement x="200" y="200" z="0" gripper_position="0"/>
+            <StringParameterRequest title="Start walking to destination?" 
+                                    msg="type [y] or [n]"
+                                    value="{confirm}"/>
+            <CheckBlackboard input="{confirm}" compare_to="y" />
+            <!--room2 = (5,5)-->
+            <BaseMovement x="5" y="5"/>
+            <StringParameterRequest title="Patient arrived?" 
+                                    msg="type [y] or [n]"
+                                    value="{confirm}"/>
+            <CheckBlackboard input="{confirm}" compare_to="y" />
+            <!--arm_home_position = (0,0,0,0)-->
+            <ArmMovement x="0" y="0" z="0" gripper_position="0"/>
+            <!--waiting_area = (0,0)-->
+            <BaseMovement x="0" y="0"/>
+        </Sequence>
+    </BehaviorTree>
+
+    <BehaviorTree ID="Recharge">
+        <Sequence>
+            <!--charging_station = (-5,-5)-->
+            <BaseMovement x="-5" y="-5"/>
+            <!--mode 1 = pair, type 4 = chargingstation-->
+            <DevicePairing pairing_mode="1" device_type="4"/>
+            <BatteryCharging goal_percentage="1"/>
+            <!--mode 2 = unpair, type 4 = chargingstation-->
+            <DevicePairing pairing_mode="2" device_type="4"/>
+            <!--waiting_area = (0,0)-->
+            <BaseMovement x="0" y="0"/>
+        </Sequence>
+    </BehaviorTree>
+
+    <BehaviorTree ID="TransportWithDevice">
+        <Sequence>
+            <!--room1 = (2,2)-->
+            <BaseMovement x="2" y="2"/>
+            <StringParameterRequest title="Start pairing and move to destination?" 
+                                    msg="type [y] or [n]"
+                                    value="{confirm}"/>
+            <CheckBlackboard input="{confirm}" compare_to="y" />
+            <IntParameterRequest options="wheelchair,rollator,hospitalbed,chargingstation"
+                                   value="{device_type}"/>
+            <!--mode 1 = pair-->
+            <DevicePairing pairing_mode="1" device_type="{device_type}"/>
+            <!--room2 = (5,5)-->
+            <BaseMovement x="5" y="5"/>
+            <StringParameterRequest title="Patient arrived?" 
+                                    msg="type [y] or [n]"
+                                    value="{confirm}"/>
+            <CheckBlackboard input="{confirm}" compare_to="y" />
+            <!--mode 2 = unpair-->
+            <DevicePairing pairing_mode="2" device_type="{device_type}"/>
+            <!--waiting_area = (0,0)-->
+            <BaseMovement x="0" y="0"/>
+        </Sequence>
+    </BehaviorTree>
+
+    <BehaviorTree ID="MainTree">
+        <ReactiveSequence>
+            <CheckStop/>
+            <CheckDiagnosticStatus/>
+            <Fallback>
+                <CheckBattery/>
+                <Recharge/>
+            </Fallback>
+            <Fallback>
+                <CheckPatientCondition/>
+                <Emergency/>
+            </Fallback>
+            <Sequence>
+                <StringParameterRequest title="Select a behavior"
+                                       options="FreeW,GuidedW,TransportWD"
+                                       value="{selected_behavior}"/>
+                <BehaviorSwitch variable="{selected_behavior}" case_1="FreeW" case_2="GuidedW" case_3="TransportWD">
+                    <FreeWalking/>
+                    <GuidedWalking/>
+                    <TransportWithDevice/>
+                    <AlwaysFailureNode name="default"/>
+                </BehaviorSwitch>
+            </Sequence>
+        </ReactiveSequence>
+    </BehaviorTree>
+
+    <TreeNodesModel>
+        <SubTree ID="BaseMovementWithRequest"/>
+        <SubTree ID="ArmMovementWithRequest"/>
+        <SubTree ID="BatteryChargingWithRequest"/>
+        <SubTree ID="DevicePairingWithRequest"/>
+        <SubTree ID="FreeWalking"/>
+        <SubTree ID="GuidedWalking"/>
+        <SubTree ID="TransportWithDevice"/>
+        <SubTree ID="Emergency"/>
+        <SubTree ID="Recharge"/>
+
+        <Condition ID="CheckStop"/>
+        <Condition ID="CheckBattery"/>
+        <Condition ID="CheckDiagnosticStatus"/>
+        <Condition ID="CheckPatientCondition"/>
+        <Condition ID="CheckBlackboard"/>
+            <input_port name="input" type="std::string"/>
+            <input_port name="compare_to" type="std::string"/>
+
+        <Decorator ID="BehaviorSwitch"/>
+
+        <Action ID="DevicePairing">
+            <input_port name="pairing_mode" type="int"/>
+            <input_port name="device_type" type="int"/>
+        </Action>
+        <Action ID="ArmMovement">
+            <input_port name="x" type="float"/>
+            <input_port name="y" type="float"/>
+            <input_port name="z" type="float"/>
+            <input_port name="gripper" type="float"/>
+        </Action>
+        <Action ID="BatteryCharging">
+            <input_port name="goal_percentage" type="float"/>
+        </Action>
+        <Action ID="BaseMovement">
+            <input_port name="x" type="float"/>
+            <input_port name="y" type="float"/>
+        </Action>
+        <Action ID="StringParameterRequest">
+            <output_port name="value" type="std::string"/>
+            <input_port name="title" type="std::string"/>
+            <input_port name="msg" type="std::string"/>
+            <input_port name="key" type="std::string"/>
+            <input_port name="min" type="std::string"/>
+            <input_port name="max" type="std::string"/>
+            <input_port name="default_value" type="std::string"/>
+            <input_port name="options" type="std::string"/>
+        </Action>
+        <Action ID="FloatParameterRequest">
+            <output_port name="value" type="float"/>
+            <input_port name="title" type="std::string"/>
+            <input_port name="msg" type="std::string"/>
+            <input_port name="key" type="std::string"/>
+            <input_port name="min" type="std::string"/>
+            <input_port name="max" type="std::string"/>
+            <input_port name="default_value" type="std::string"/>
+            <input_port name="options" type="std::string"/>
+        </Action>
+        <Action ID="IntParameterRequest">
+            <output_port name="value" type="int"/>
+            <input_port name="title" type="std::string"/>
+            <input_port name="msg" type="std::string"/>
+            <input_port name="key" type="std::string"/>
+            <input_port name="min" type="std::string"/>
+            <input_port name="max" type="std::string"/>
+            <input_port name="default_value" type="std::string"/>
+            <input_port name="options" type="std::string"/>
+        </Action>
+        <Action ID="AlwaysFailureNode"/>
+    </TreeNodesModel>
+ </root>

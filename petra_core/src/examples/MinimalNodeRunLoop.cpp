@@ -1,3 +1,12 @@
+/** *******************************************************
+ * PeTRA - University of Applied Sciences Karlsruhe
+ * Module : Examples
+ * Purpose : Example of a minimal ROS2-Node class with 
+ *           spin_some() method instead of blocking spin()
+ *
+ * @author Andreas Zachariae
+ * @since 1.0.0 (2020.08.26)
+ *********************************************************/
 #include "rclcpp/rclcpp.hpp"
 
 class MinimalNodeRunLoop

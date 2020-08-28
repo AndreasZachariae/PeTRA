@@ -1,16 +1,26 @@
- <root main_tree_to_execute = "TransportWithDevice" >
+<root main_tree_to_execute = "TransportWithDevice" >
     <BehaviorTree ID="TransportWithDevice">
         <Sequence>
-            <!--room1 = (2,2)-->
-            <BaseMovementSendGoal X="2" Y="2"/>
-            <ConfirmDialog message="Start pairing and move to destination?"/>
-            <DevicePairing/>
-            <!--room2 = (5,5)-->
-            <BaseMovementSendGoal X="5" Y="5"/>
-            <ConfirmDialog message="Patient arrived?"/>
-            <DevicePairing/>
+            <!--room1 = (4.5,-7)-->
+            <BaseMovement x="4.5" y="-7"/>
+            <StringParameterRequest title="Start pairing and move to destination?" 
+                                    msg="type [y] or [n]"
+                                    value="{confirm}"/>
+            <CheckBlackboard input="{confirm}" compare_to="y" />
+            <IntParameterRequest options="wheelchair,rollator,hospitalbed,chargingstation"
+                                   value="{device_type}"/>
+            <!--mode 1 = pair-->
+            <DevicePairing pairing_mode="1" device_type="{device_type}"/>
+            <!--room2 = (-9,-5)-->
+            <BaseMovement x="-9" y="-5"/>
+            <StringParameterRequest title="Patient arrived?" 
+                                    msg="type [y] or [n]"
+                                    value="{confirm}"/>
+            <CheckBlackboard input="{confirm}" compare_to="y" />
+            <!--mode 2 = unpair-->
+            <DevicePairing pairing_mode="2" device_type="{device_type}"/>
             <!--waiting_area = (0,0)-->
-            <BaseMovementSendGoal X="0" Y="0"/>
+            <BaseMovement x="0" y="0"/>
         </Sequence>
     </BehaviorTree>
- </root>
+</root>

@@ -1,18 +1,19 @@
-byte WHEELCHAIR = 0
-byte ROLLATOR = 1
-byte HOSPITALBED = 2
-byte CHARGINGSTATION = 3
+# goal
+std_msgs/Header header
 
-byte UNPAIR = 0
-byte PAIR = 1
-
-# action goal
+byte WHEELCHAIR = 1
+byte ROLLATOR = 2
+byte HOSPITALBED = 3
+byte CHARGINGSTATION = 4
 byte device_type
+
+byte PAIR = 1
+byte UNPAIR = 2
 byte pairing_mode
 ---
-# action result
+# result
 bool success
 ---
-# action feedback
+# feedback
 # progress from 0 to 1
 float32 progress

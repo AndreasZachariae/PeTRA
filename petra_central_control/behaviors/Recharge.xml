@@ -1,13 +1,15 @@
  <root main_tree_to_execute = "Recharge" >
     <BehaviorTree ID="Recharge">
         <Sequence>
-            <!--charging_station = (-5,-5)-->
-            <BaseMovementSendGoal X="-5" Y="-5"/>
-            <DevicePairing/>
-            <BatteryCharging/>
-            <DevicePairing/>
+            <!--charging_station = (-6,7.5)-->
+            <BaseMovement x="-6" y="7.5"/>
+            <!--mode 1 = pair, type 4 = chargingstation-->
+            <DevicePairing pairing_mode="1" device_type="4"/>
+            <BatteryCharging goal_percentage="1"/>
+            <!--mode 2 = unpair, type 4 = chargingstation-->
+            <DevicePairing pairing_mode="2" device_type="4"/>
             <!--waiting_area = (0,0)-->
-            <BaseMovementSendGoal X="0" Y="0"/>
+            <BaseMovement x="0" y="0"/>
         </Sequence>
     </BehaviorTree>
  </root>

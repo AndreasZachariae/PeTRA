@@ -1,38 +1,35 @@
+/** *******************************************************
+ * PeTRA - University of Applied Sciences Karlsruhe
+ * Module : ROS2-Node "PeTRACentralControl"
+ * Purpose : Provides the ROS2-Action client "MoveArm"
+ *
+ * @author Andreas Zachariae
+ * @author Moritz Weisenböhler
+ * @since 1.0.0 (2020.08.26)
+ *********************************************************/
 #pragma once
 
 #include <petra_central_control/default.h>
 
-#include <rclcpp_action/rclcpp_action.hpp>
-
-#include <petra_central_control/actions/base/Action.h>
-#include <petra_central_control/actions/types/UserDialog.h>
+#include <petra_central_control/actions/base/RosAction.h>
+#include <petra_central_control/actions/base/converts.h>
 #include <petra_core/action/move_arm.hpp>
-#include <petra_core/Point.h>
 
 using MoveArm = petra_core::action::MoveArm;
-using GoalHandleMoveArm = rclcpp_action::ClientGoalHandle<MoveArm>;
 
-class ArmMovement : public Action
+class ArmMovement : public RosAction<MoveArm>
 {
 public:
-    static BT::PortsList providedPorts() { return BT::PortsList(); }
+    static BT::PortsList providedPorts() { return {BT::InputPort<float>("x"),
+                                                   BT::InputPort<float>("y"),
+                                                   BT::InputPort<float>("z"),
+                                                   BT::InputPort<float>("gripper_position")}; }
 
-    ArmMovement(const std::string &name, const BT::NodeConfiguration &config);
+    ArmMovement(const std::string &name, const BT::NodeConfiguration &config) : RosAction(name, config) {}
 
-    BT::NodeStatus onStart() override;
-    BT::NodeStatus onRunning() override;
-    void onHalted() override;
+    std::string actionServerName() { return "MoveArm"; }
 
-    void set_coordinates(Point goal_point, float gripper_position);
-
-private:
-    rclcpp_action::Client<MoveArm>::SharedPtr move_arm_client_;
-    std::shared_future<std::shared_ptr<GoalHandleMoveArm>> goal_handle_future_;
-
-    UserDialog goal_point_dialog_;
-    Point goal_point_ = Point();
-    float gripper_position_ = 0;
-
-    void request_coordinates_();
-    void send_goal_();
+    void onSend(MoveArm::Goal &goal) override;
+    void onFeedback(const std::shared_ptr<const MoveArm::Feedback> feedback) override;
+    void onResult(const rclcpp_action::ClientGoalHandle<MoveArm>::WrappedResult &result, const MoveArm::Goal &goal) override;
 };

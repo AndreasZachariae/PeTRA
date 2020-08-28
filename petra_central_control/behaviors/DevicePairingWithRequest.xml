@@ -1,0 +1,13 @@
+ <root main_tree_to_execute = "DevicePairingWithRequest" >
+    <BehaviorTree ID="DevicePairingWithRequest">
+        <Sequence>
+            <!--pairing_mode und device_type müssen den Konstanten im .action file entsprechen-->
+            <IntParameterRequest title="Bitte geben Sie den Kopplungsmodus und das Gerät an"
+                                   options="pair,unpair"
+                                   value="{pairing_mode}"/>
+            <IntParameterRequest options="wheelchair,rollator,hospitalbed,chargingstation"
+                                   value="{device_type}"/>
+            <DevicePairing pairing_mode="{pairing_mode}" device_type="{device_type}"/>
+        </Sequence>
+    </BehaviorTree>
+ </root>

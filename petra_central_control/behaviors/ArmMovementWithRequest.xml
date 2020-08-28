@@ -1,0 +1,13 @@
+ <root main_tree_to_execute = "ArmMovementWithRequest" >
+    <BehaviorTree ID="ArmMovementWithRequest">
+        <Sequence>
+            <FloatParameterRequest title="Bitte geben Sie x, y und z in [mm] an"
+                                   value="{x}" key="x" min="-1000" max="1000"/>
+            <FloatParameterRequest value="{y}" key="y" min="-1000" max="1000"/>
+            <FloatParameterRequest value="{z}" key="z" min="-1000" max="1000"/>
+            <FloatParameterRequest msg="Geben Sie die Greiferposition von 0 [open] bis 1 [closed] an"
+                                   value="{gripper_position}" key="gripper_position" min="0" max="1"/>
+            <ArmMovement x="{x}" y="{y}" z="{z}" gripper_position="{gripper_position}"/>
+        </Sequence>
+    </BehaviorTree>
+ </root>

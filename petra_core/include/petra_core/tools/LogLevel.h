@@ -21,6 +21,6 @@ public:
 
     std::string to_string() const;
 
-    private:
-        Value value_;
+private:
+    Value value_;
 };

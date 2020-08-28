@@ -7,6 +7,8 @@ CheckDiagnosticStatus::CheckDiagnosticStatus(const std::string &name, const BT::
     diagnostic_status_subscription_ = get_node_handle()->create_subscription<diagnostic_msgs::msg::DiagnosticStatus>("DiagnosticStatus", 10, [&](const diagnostic_msgs::msg::DiagnosticStatus::SharedPtr msg) {
         if (msg->level == diagnostic_msgs::msg::DiagnosticStatus::ERROR)
         {
+            //DiagnosticStatuses are recieved from multiple components,
+            //if at least one has an ERROR, onCheck has to return FAILURE.
             diagnostic_error_ = true;
 
             log("[DiagnosticStatus] " + msg->name + " ID:" + msg->hardware_id + "Status NOT OK! /Stop published", LogLevel::Error);
@@ -19,7 +21,7 @@ CheckDiagnosticStatus::CheckDiagnosticStatus(const std::string &name, const BT::
 BT::NodeStatus CheckDiagnosticStatus::onCheck()
 {
     if (diagnostic_error_)
-    {   
+    {
         log("Diagnostic failed");
         return BT::NodeStatus::FAILURE;
     }

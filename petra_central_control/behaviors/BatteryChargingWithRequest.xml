@@ -1,0 +1,9 @@
+ <root main_tree_to_execute = "BatteryChargingWithRequest" >
+    <BehaviorTree ID="BatteryChargingWithRequest">
+        <Sequence>
+            <FloatParameterRequest title="Bitte geben Sie die Zielladung an von 0 [empty] bis 1 [full]"
+                                   value="{goal_percentage}" key="goal_percentage" min="0" max="1"/>
+            <BatteryCharging goal_percentage="{goal_percentage}"/>
+        </Sequence>
+    </BehaviorTree>
+ </root>

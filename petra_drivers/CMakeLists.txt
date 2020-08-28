@@ -3,16 +3,16 @@ project(petra_drivers)
 
 # Default to C99
 if(NOT CMAKE_C_STANDARD)
-  set(CMAKE_C_STANDARD 99)
+    set(CMAKE_C_STANDARD 99)
 endif()
 
 # Default to C++14
 if(NOT CMAKE_CXX_STANDARD)
-  set(CMAKE_CXX_STANDARD 14)
+    set(CMAKE_CXX_STANDARD 14)
 endif()
 
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-  add_compile_options(-Wall -Wextra -Wpedantic)
+    add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
 
 # find dependencies
@@ -22,13 +22,13 @@ find_package(rclcpp_action REQUIRED)
 find_package(petra_core REQUIRED)
 
 include_directories(
-  include 
-  ${petra_core_INCLUDE_DIRS}
+    include 
+    ${petra_core_INCLUDE_DIRS}
 )
 
 set(dependencies 
-  "rclcpp" 
-  "petra_core"
+    "rclcpp" 
+    "petra_core"
 )
 
 #make executables
@@ -52,13 +52,13 @@ add_executable(BatteryDummy src/BatteryDummy.cpp)
 ament_target_dependencies(BatteryDummy ${dependencies} "rclcpp_action")
 
 install(TARGETS
-  Screen
-  Keyboard
-  RobotDummy
-  PairingModuleDummy
-  ManipulatorDummy
-  BatteryDummy
-  DESTINATION lib/${PROJECT_NAME}
+    Screen
+    Keyboard
+    RobotDummy
+    PairingModuleDummy
+    ManipulatorDummy
+    BatteryDummy
+    DESTINATION lib/${PROJECT_NAME}
 )
 
 ament_package()

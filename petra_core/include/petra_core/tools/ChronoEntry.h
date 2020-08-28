@@ -7,14 +7,14 @@
 class ChronoEntry
 {
 public:
-  ChronoEntry() {}
-  ~ChronoEntry() {}
+    ChronoEntry() {}
+    ~ChronoEntry() {}
 
-  void start() { start_time_ = ChronoTime(); }
-  void stop() { stop_time_ = ChronoTime(); }
-  int64_t duration() { return start_time_.duration(stop_time_); }
+    void start() { start_time_ = ChronoTime(); }
+    void stop() { stop_time_ = ChronoTime(); }
+    int64_t duration() { return start_time_.duration(stop_time_); }
 
 private:
-  ChronoTime start_time_;
-  ChronoTime stop_time_;
+    ChronoTime start_time_;
+    ChronoTime stop_time_;
 };

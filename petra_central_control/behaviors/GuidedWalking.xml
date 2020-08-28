@@ -2,17 +2,23 @@
     <BehaviorTree ID="GuidedWalking">
         <Sequence>
             <!--room1 = (2,2)-->
-            <BaseMovementSendGoal X="2" Y="2"/>
+            <BaseMovement x="2" y="2"/>
             <!--arm_support_position = (200,200,0,0)-->
-            <ArmMovement/>
-            <ConfirmDialog message="Start walking to destination?"/>
+            <ArmMovement x="200" y="200" z="0" gripper_position="0"/>
+            <StringParameterRequest title="Start walking to destination?" 
+                                    msg="type [y] or [n]"
+                                    value="{confirm}"/>
+            <CheckBlackboard input="{confirm}" compare_to="y" />
             <!--room2 = (5,5)-->
-            <BaseMovementSendGoal X="5" Y="5"/>
-            <ConfirmDialog message="Patient arrived?"/>
+            <BaseMovement x="5" y="5"/>
+            <StringParameterRequest title="Patient arrived?" 
+                                    msg="type [y] or [n]"
+                                    value="{confirm}"/>
+            <CheckBlackboard input="{confirm}" compare_to="y" />
             <!--arm_home_position = (0,0,0,0)-->
-            <ArmMovement/>
+            <ArmMovement x="0" y="0" z="0" gripper_position="0"/>
             <!--waiting_area = (0,0)-->
-            <BaseMovementSendGoal X="0" Y="0"/>
+            <BaseMovement x="0" y="0"/>
         </Sequence>
     </BehaviorTree>
  </root>

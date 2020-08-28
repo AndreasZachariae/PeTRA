@@ -1,10 +1,11 @@
 # From navigation2/nav2_msgs
-#goal definition
+# goal
 geometry_msgs/PoseStamped pose
 ---
-#result definition
+# result
 std_msgs/Empty result
 ---
+# feedback
 geometry_msgs/PoseStamped current_pose
 builtin_interfaces/Duration navigation_time
 int16 number_of_recoveries

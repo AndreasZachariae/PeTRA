@@ -1,9 +1,10 @@
-# action goal
+# goal
+std_msgs/Header header
 # 0 empty, 1 full
 float32 goal_percentage
 ---
-# action result
+# result
 bool success
 ---
-# action feedback
+# feedback
 sensor_msgs/BatteryState current_state

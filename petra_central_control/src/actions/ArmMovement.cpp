@@ -1,148 +1,54 @@
 #include <petra_central_control/actions/ArmMovement.h>
 
-ArmMovement::ArmMovement(const std::string &name, const BT::NodeConfiguration &config) : Action(name, config)
+void ArmMovement::onSend(MoveArm::Goal &goal)
 {
-    progress_.steps = 5;
-}
+    // Check if Optional is valid. If not, throw its error
+    BT::Optional<float> x_input = getInput<float>("x");
+    BT::Optional<float> y_input = getInput<float>("y");
+    BT::Optional<float> z_input = getInput<float>("z");
+    BT::Optional<float> gripper_input = getInput<float>("gripper_position");
 
-BT::NodeStatus ArmMovement::onStart()
-{
-
-    move_arm_client_ = rclcpp_action::create_client<MoveArm>(
-        get_node_handle()->get_node_base_interface(),
-        get_node_handle()->get_node_graph_interface(),
-        get_node_handle()->get_node_logging_interface(),
-        get_node_handle()->get_node_waitables_interface(),
-        "MoveArm");
-
-    log("Action STARTED");
-
-    return BT::NodeStatus::RUNNING;
-}
-
-BT::NodeStatus ArmMovement::onRunning()
-{
-    switch (progress_.current_step)
+    if (!x_input.has_value())
     {
-    case Progress::FAIL_STEP:
-        return BT::NodeStatus::FAILURE;
-    case 0:
-        request_coordinates_();
-        break;
-    case 2:
-        send_goal_();
-        break;
-    case 5:
-        return BT::NodeStatus::SUCCESS;
+        throw BT::RuntimeError("missing required input [x]: ", x_input.error());
+    }
+    if (!y_input.has_value())
+    {
+        throw BT::RuntimeError("missing required input [y]: ", y_input.error());
+    }
+    if (!z_input.has_value())
+    {
+        throw BT::RuntimeError("missing required input [z]: ", z_input.error());
+    }
+    if (!gripper_input.has_value())
+    {
+        throw BT::RuntimeError("missing required input [gripper_position]: ", gripper_input.error());
     }
 
-    return BT::NodeStatus::RUNNING;
+    goal.pose.pose.position.x = x_input.value();
+    goal.pose.pose.position.y = y_input.value();
+    goal.pose.pose.position.z = z_input.value();
+    goal.gripper_position = gripper_input.value();
+
+    goal.pose.pose.orientation.w = 1; //hard-coded orientation (x=0, y=0, z=0, w=1)
+    goal.pose.header.stamp = get_node_handle()->now();
+
+    log("Goal: (x=" + ftos(goal.pose.pose.position.x) + ", y=" + ftos(goal.pose.pose.position.y) + ", z=" + ftos(goal.pose.pose.position.z) + ")");
 }
 
-void ArmMovement::onHalted()
+void ArmMovement::onFeedback(const std::shared_ptr<const MoveArm::Feedback> feedback)
 {
-    try
-    {
-        auto cancel_result_future = move_arm_client_->async_cancel_goal(goal_handle_future_.get());
-    }
-    catch (const std::future_error &e)
-    {
-        log("Canceled before goal was sent");
-    }
+    log("Position: (x=" + ftos((float)feedback->current_pose.pose.position.x) +
+        ", y=" + ftos((float)feedback->current_pose.pose.position.y) +
+        ", z=" + ftos((float)feedback->current_pose.pose.position.z) +
+        "), Progress: " + ftos((float)(feedback->progress * 100)) +
+        "%, Time: " + std::to_string(feedback->movement_time.sec) + "s");
 }
 
-void ArmMovement::set_coordinates(Point goal_point, float gripper_position)
+void ArmMovement::onResult(const rclcpp_action::ClientGoalHandle<MoveArm>::WrappedResult &, const MoveArm::Goal &goal)
 {
-    goal_point_ = goal_point;
-    gripper_position_ = gripper_position;
-
-    progress_.current_step = 2;
-}
-
-void ArmMovement::request_coordinates_()
-{
-    goal_point_dialog_ = UserDialog("Goal coordinates", "coordinates x,y,z in [mm] and \ngripper position from 0 (open) to 1 (closed)");
-    goal_point_dialog_.add_float_key("X", -1000, 1000);
-    goal_point_dialog_.add_float_key("Y", -1000, 1000);
-    goal_point_dialog_.add_float_key("Z", -1000, 1000);
-    goal_point_dialog_.add_float_key("gripper_position", 0, 1);
-
-    if (goal_point_dialog_.send_dialog([this]() {
-            //data_values ist nicht voll belegt wenn Communication durch /stop resetted wurde
-            if (goal_point_dialog_.get_response()->data_values.size() == 4)
-            {
-                goal_point_ = Point(
-                    stof(goal_point_dialog_.get_response()->data_values.at(0)),
-                    stof(goal_point_dialog_.get_response()->data_values.at(1)),
-                    stof(goal_point_dialog_.get_response()->data_values.at(2)));
-
-                gripper_position_ = stof(goal_point_dialog_.get_response()->data_values.at(3));
-
-                progress_.next_step("Received coordinates...");
-            }
-        }))
-    {
-        progress_.next_step("Requesting coordinates...");
-    }
-}
-
-void ArmMovement::send_goal_()
-{
-    if (move_arm_client_->action_server_is_ready())
-    {
-        auto goal_msg = MoveArm::Goal();
-
-        //get this value from user input
-        goal_msg.pose.position.x = goal_point_.x;
-        goal_msg.pose.position.y = goal_point_.y;
-        goal_msg.pose.position.z = goal_point_.z;
-        goal_msg.pose.position.z = 0;
-        goal_msg.pose.orientation.w = 1; //hard-coded orientation (x=0, y=0, z=0, w=1)
-        goal_msg.gripper_position = gripper_position_;
-        double start_time = get_node_handle()->now().seconds();
-
-        log("Goal: (x=" + ftos(goal_point_.x) + ", y=" + ftos(goal_point_.y) + ", z=" + ftos(goal_point_.z) + ")");
-
-        auto send_goal_options = rclcpp_action::Client<MoveArm>::SendGoalOptions();
-
-        send_goal_options.goal_response_callback = [&](std::shared_future<GoalHandleMoveArm::SharedPtr> future) {
-            if (!future.get())
-            {
-                log("Goal was rejected by server", LogLevel::Error);
-                progress_.set_step(5);
-            }
-            else
-            {
-                progress_.next_step("Goal accepted...");
-            }
-        };
-
-        send_goal_options.feedback_callback = [this](GoalHandleMoveArm::SharedPtr, const std::shared_ptr<const MoveArm::Feedback> feedback) {
-            log("Position: (x=" + ftos((float)feedback->current_pose.position.x) + ", y=" + ftos((float)feedback->current_pose.position.y) + ", z=" + ftos((float)feedback->current_pose.position.z) + "), Progress: " + ftos((float)(feedback->progress * 100)) + "%, Time: " + std::to_string(feedback->movement_time.sec) + "s");
-        };
-
-        send_goal_options.result_callback = [this, start_time](const GoalHandleMoveArm::WrappedResult &result) {
-            if (result.code == rclcpp_action::ResultCode::ABORTED || result.code == rclcpp_action::ResultCode::CANCELED || result.code == rclcpp_action::ResultCode::UNKNOWN)
-            {
-                progress_.set_fail();
-            }
-            else
-            {
-                if (result.result->success)
-                {
-                    log("Goal reached! (x=" + ftos(goal_point_.x) + ", y=" + ftos(goal_point_.y) + ", z=" + ftos(goal_point_.z) + "), Total time: " + std::to_string((int)(get_node_handle()->now().seconds() - start_time)) + "s");
-                }
-                else
-                {
-                    log("Goal not reached!");
-                }
-
-                progress_.next_step("Received result...");
-            }
-        };
-
-        goal_handle_future_ = move_arm_client_->async_send_goal(goal_msg, send_goal_options);
-
-        progress_.next_step("Sending goal...");
-    }
+    log("Goal reached! (x=" + ftos(goal.pose.pose.position.x) +
+        ", y=" + ftos(goal.pose.pose.position.y) +
+        ", z=" + ftos(goal.pose.pose.position.z) +
+        "), Total time: " + std::to_string((int)(get_node_handle()->now().seconds() - -goal.pose.header.stamp.sec)) + "s");
 }

@@ -1,10 +1,13 @@
-#goal definition
-geometry_msgs/Pose pose
+# goal
+geometry_msgs/PoseStamped pose
+# 0 open, 1 closed
 float32 gripper_position
 ---
-#result definition
+# result
 bool success
 ---
-geometry_msgs/Pose current_pose
+# feedback
+geometry_msgs/PoseStamped current_pose
 builtin_interfaces/Duration movement_time
+# progress from 0 to 1
 float32 progress

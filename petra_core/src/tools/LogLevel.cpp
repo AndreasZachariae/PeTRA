@@ -12,7 +12,7 @@ std::string LogLevel::to_string() const
         return "Warn";
     case LogLevel::Error:
         return "Error";
-    
+
     default:
         return "";
     }

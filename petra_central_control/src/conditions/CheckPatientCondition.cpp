@@ -2,8 +2,7 @@
 
 CheckPatientCondition::CheckPatientCondition(const std::string &name, const BT::NodeConfiguration &config) : Condition(name, config)
 {
-    condition_subscription_ = get_node_handle()->create_subscription<petra_core::msg::PatientCondition>("PatientCondition", 10, [&](const petra_core::msg::PatientCondition::SharedPtr msg) 
-    {
+    condition_subscription_ = get_node_handle()->create_subscription<petra_core::msg::PatientCondition>("PatientCondition", 10, [&](const petra_core::msg::PatientCondition::SharedPtr msg) {
         patient_condition_ = msg->condition;
     });
 }

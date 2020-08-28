@@ -7,7 +7,7 @@ bool ThreadExecuter::run()
     if (!is_running())
     {
         std::thread thread(system, filepath_.c_str());
-        
+
         thread_handle_ = thread.native_handle();
         thread.detach();
 

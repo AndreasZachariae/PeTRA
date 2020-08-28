@@ -6,40 +6,109 @@
     <include path="Recharge.xml"/>
     <include path="TransportWithDevice.xml"/>
 
-    <include path="BaseMovement.xml"/>
+    <include path="BaseMovementWithRequest.xml"/>
+    <include path="ArmMovementWithRequest.xml"/>
+    <include path="BatteryChargingWithRequest.xml"/>
+    <include path="DevicePairingWithRequest.xml"/>
 
     <BehaviorTree ID="MainTree">
         <ReactiveSequence>
             <CheckStop/>
-            <CheckBattery/>
             <CheckDiagnosticStatus/>
-            <CheckPatientCondition/>
+            <Fallback>
+                <CheckBattery/>
+                <Recharge/>
+            </Fallback>
+            <Fallback>
+                <CheckPatientCondition/>
+                <Emergency/>
+            </Fallback>
             <Sequence>
-                <SkillSelection selected_action="{selected_action}" />
-                <SkillSwitch variable="{selected_action}" case_1="DevicePairing" case_2="BaseMovement" case_3="ArmMovement" case_4="BatteryCharging" case_5="FreeWalking" case_6="GuidedWalking" case_7="TransportWithDevice">
-                    <DevicePairing/>
-                    <BaseMovement/>
-                    <ArmMovement/>
-                    <BatteryCharging/>
+                <StringParameterRequest title="Select a behavior"
+                                       options="DevicePairingWithRequest,BaseMovementWithRequest,ArmMovementWithRequest,BatteryChargingWithRequest,FreeWalking,GuidedWalking,TransportWithDevice"
+                                       value="{selected_behavior}"/>
+                <BehaviorSwitch variable="{selected_behavior}" case_1="DevicePairingWithRequest" case_2="BaseMovementWithRequest" case_3="ArmMovementWithRequest" case_4="BatteryChargingWithRequest" case_5="FreeWalking" case_6="GuidedWalking" case_7="TransportWithDevice">
+                    <DevicePairingWithRequest/>
+                    <BaseMovementWithRequest/>
+                    <ArmMovementWithRequest/>
+                    <BatteryChargingWithRequest/>
                     <FreeWalking/>
                     <GuidedWalking/>
                     <TransportWithDevice/>
-                    <AlwaysFailureNode name="default_action"/>
-                </SkillSwitch>
+                    <AlwaysFailureNode name="default"/>
+                </BehaviorSwitch>
             </Sequence>
         </ReactiveSequence>
     </BehaviorTree>
 
-    <TreeNodeModel>
-        <Action ID="SkillSelection">
-            <output_port name="selected_action" type="std::string"/>
+    <TreeNodesModel>
+        <SubTree ID="BaseMovementWithRequest"/>
+        <SubTree ID="ArmMovementWithRequest"/>
+        <SubTree ID="BatteryChargingWithRequest"/>
+        <SubTree ID="DevicePairingWithRequest"/>
+        <SubTree ID="FreeWalking"/>
+        <SubTree ID="GuidedWalking"/>
+        <SubTree ID="TransportWithDevice"/>
+        <SubTree ID="Emergency"/>
+        <SubTree ID="Recharge"/>
+
+        <Condition ID="CheckStop"/>
+        <Condition ID="CheckBattery"/>
+        <Condition ID="CheckDiagnosticStatus"/>
+        <Condition ID="CheckPatientCondition"/>
+        <Condition ID="CheckBlackboard"/>
+            <input_port name="input" type="std::string"/>
+            <input_port name="compare_to" type="std::string"/>
+
+        <Decorator ID="BehaviorSwitch"/>
+
+        <Action ID="DevicePairing">
+            <input_port name="pairing_mode" type="int"/>
+            <input_port name="device_type" type="int"/>
         </Action>
-        <Action ID="DevicePairing"/>
-        <!--<Action ID="BaseMovement"/>-->
-        <Action ID="ArmMovement"/>
-        <Action ID="BatteryCharging"/>
-        <Action ID="ConfirmDialog">
-            <input_port name="message" type="std::string"/>
-        </Action>   
-    </TreeNodeModel>
+        <Action ID="ArmMovement">
+            <input_port name="x" type="float"/>
+            <input_port name="y" type="float"/>
+            <input_port name="z" type="float"/>
+            <input_port name="gripper" type="float"/>
+        </Action>
+        <Action ID="BatteryCharging">
+            <input_port name="goal_percentage" type="float"/>
+        </Action>
+        <Action ID="BaseMovement">
+            <input_port name="x" type="float"/>
+            <input_port name="y" type="float"/>
+        </Action>
+        <Action ID="StringParameterRequest">
+            <output_port name="value" type="std::string"/>
+            <input_port name="title" type="std::string"/>
+            <input_port name="msg" type="std::string"/>
+            <input_port name="key" type="std::string"/>
+            <input_port name="min" type="std::string"/>
+            <input_port name="max" type="std::string"/>
+            <input_port name="default_value" type="std::string"/>
+            <input_port name="options" type="std::string"/>
+        </Action>
+        <Action ID="FloatParameterRequest">
+            <output_port name="value" type="float"/>
+            <input_port name="title" type="std::string"/>
+            <input_port name="msg" type="std::string"/>
+            <input_port name="key" type="std::string"/>
+            <input_port name="min" type="std::string"/>
+            <input_port name="max" type="std::string"/>
+            <input_port name="default_value" type="std::string"/>
+            <input_port name="options" type="std::string"/>
+        </Action>
+        <Action ID="IntParameterRequest">
+            <output_port name="value" type="int"/>
+            <input_port name="title" type="std::string"/>
+            <input_port name="msg" type="std::string"/>
+            <input_port name="key" type="std::string"/>
+            <input_port name="min" type="std::string"/>
+            <input_port name="max" type="std::string"/>
+            <input_port name="default_value" type="std::string"/>
+            <input_port name="options" type="std::string"/>
+        </Action>
+        <Action ID="AlwaysFailureNode"/>
+    </TreeNodesModel>
  </root>

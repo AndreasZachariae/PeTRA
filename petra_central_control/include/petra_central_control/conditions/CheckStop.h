@@ -1,3 +1,12 @@
+/** *******************************************************
+ * PeTRA - University of Applied Sciences Karlsruhe
+ * Module : ROS2-Node "PeTRACentralControl"
+ * Purpose : Checks the ROS2-Topic "Stop"
+ *
+ * @author Andreas Zachariae
+ * @author Moritz Weisenböhler
+ * @since 1.0.0 (2020.08.26)
+ *********************************************************/
 #pragma once
 
 #include <petra_central_control/default.h>

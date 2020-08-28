@@ -10,7 +10,7 @@ public:
     ThreadExecuter(const std::string &filepath) : filepath_(filepath) {}
     ~ThreadExecuter() {}
 
-    std::string filepath(){ return filepath_; }
+    std::string filepath() { return filepath_; }
     bool is_running() { return thread_handle_ > 0; }
 
     bool run();

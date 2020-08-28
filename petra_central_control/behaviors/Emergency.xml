@@ -1,5 +1,10 @@
  <root main_tree_to_execute = "Emergency" >
     <BehaviorTree ID="Emergency">
-        <ConfirmDialog message="Emergency finished?"/>
+        <Sequence>
+            <StringParameterRequest title="Emergency finished?" 
+                                    msg="type [y] or [n]"
+                                    value="{confirm}"/>
+            <CheckBlackboard input="{confirm}" compare_to="y" />
+        </Sequence>
     </BehaviorTree>
  </root>

@@ -64,5 +64,6 @@
         "future": "cpp",
         "mutex": "cpp",
         "typeindex": "cpp"
-    }
+    },
+    "python.formatting.provider": "yapf"
 }
